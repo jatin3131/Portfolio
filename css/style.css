@@ -189,10 +189,13 @@ button { font-family: inherit; }
 
 @media (max-width: 506px) {
   .explore-btn {
+    
     padding: 3px 10px;
     font-size: 7px;
      position: relative;
     z-index: 99999;
+     margin-right: 9px;
+    
   }
 }
 
@@ -202,6 +205,7 @@ button { font-family: inherit; }
     font-size: 5px;
     position: relative;
     z-index: 99999;
+    margin-right: 9px;
   }
 }
 
@@ -278,21 +282,6 @@ button { font-family: inherit; }
   transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease, border-color 0.25s ease, box-shadow 0.3s ease;
 }
 
-/* @media (max-width: 506px) {
-  .explore-btn {
-    padding: 3px 10px;
-    font-size: 7px;
-  }
-}
-
-@media (max-width: 432px) {
-  .explore-btn {
-    padding: 2px 7px;
-    font-size: 5px;
-  }
-} */
-
-
 @media (max-width: 739px) {
   .pill {
     padding: 8px 16px;
@@ -313,6 +302,8 @@ button { font-family: inherit; }
     padding: 6px 13px;
      margin-top: -35px;
     font-size: 10px;
+    margin-right:2px;
+    margin-bottom: 19px;
   }
 }
 
@@ -322,6 +313,8 @@ button { font-family: inherit; }
     font-size: 10px;
     margin-top: -35px;
     text-align: center;
+    margin-right: 11px;
+    margin-bottom: 19px;
   }
 }
 
@@ -330,8 +323,12 @@ button { font-family: inherit; }
   .pill {
      padding: 3px 8px;
     font-size: 8px;
-    margin-top: -35px;
+    margin-top: -43px;
     text-align: center;
+    padding: 2px 10px;
+
+    margin-right: 11px;
+    margin-bottom: 19px;
   }
 }
 
@@ -340,8 +337,10 @@ button { font-family: inherit; }
   .pill {
      padding:2px 7px;
     font-size: 7px;
-    margin-top: -35px;
+    margin-top: -43px;
     text-align: center;
+    margin-right: 11px;
+    margin-bottom: 19px;
   }
 }
 .pill:hover {
@@ -659,6 +658,10 @@ button { font-family: inherit; }
   background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
 }
 
+/* ============================================================
+   PROJECT CARDS — base styles
+   ============================================================ */
+
 .project-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -672,24 +675,22 @@ button { font-family: inherit; }
 }
 
 .project-card {
+  position: relative; /* required so .visit-btn anchors to the card, not <body> */
   border: 1.5px solid var(--border);
   height: 465px;
-  /* width: 400px; */
-  
   border-radius: var(--radius-md);
   overflow: hidden;
   background: #fff;
   transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease, border-color 0.3s ease;
   animation: fadeSlideUp 0.6s ease both;
 }
+
 .project-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 26px 48px -26px rgba(60, 60, 65, 0.22);
   border-color: var(--accent);
 }
 .project-img-wrap {
-  
-  
   position: relative;
   height: 260px;
   overflow: hidden;
@@ -714,8 +715,7 @@ button { font-family: inherit; }
 }
 .project-card:hover .project-img { transform: scale(1.08); }
 
-.project-body { padding: 2px 28px 30px; 
-}
+.project-body { padding: 2px 28px 30px; }
 .project-title {
   font-family: 'Fraunces', serif;
   font-size: 21px;
@@ -730,6 +730,7 @@ button { font-family: inherit; }
   font-weight: 600;
   margin: 0 0 12px;
 }
+
 .project-desc {
   font-size: 14.5px;
   line-height: 1.7;
@@ -739,25 +740,6 @@ button { font-family: inherit; }
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-@media (max-width: 526px) {
-  .project-desc {
-    font-size: 14.5px
-  }
-
-  
-}
-@media (max-width: 526px) {
-  .project-body { padding: 2px 2px 30px; 
-}
-  
-}
-
-@media (max-width: 470px) {
-  .project-body { padding: 0px 2px  px; 
-}
-  
 }
 
 .link-btn {
@@ -780,6 +762,195 @@ button { font-family: inherit; }
   color: #fff;
   gap: 10px;
   box-shadow: 0 12px 24px -12px rgba(255, 147, 118, 0.55);
+}
+
+/* "GitHub" style button on each project card — now defined once here
+   instead of in duplicate inline <style> blocks per card in the HTML.
+   Remove those inline blocks from the HTML; this is the single source. */
+.visit-btn {
+  position: absolute;
+  right: 20px;
+  bottom: 22px;
+  padding: 12px 25px;
+  font-size: 16px;
+  border: none;
+  border-radius: 8px;
+  background: #00bfff;
+  color: white;
+  cursor: pointer;
+  animation: pop 3s infinite;
+  width: fit-content;
+  white-space: nowrap;
+  z-index: 5;
+
+    width: fit-content;
+  white-space: nowrap;
+}
+@keyframes pop {
+  0%, 85%, 100% { transform: scale(1); }
+  90% { transform: scale(1.15); }
+  95% { transform: scale(1); }
+}
+
+/* ============================================================
+   PROJECT CARDS — responsive cascade
+   Runs widest → narrowest, each block only overrides what needs
+   to shrink further. No two rules for the same breakpoint,
+   no out-of-order overrides.
+   ============================================================ */
+
+@media (max-width: 900px) {
+  .project-img-wrap { height: 230px; }
+  .project-body { padding: 18px 24px 26px; }
+  .project-title { font-size: 20px; }
+  .project-desc { font-size: 14px; }
+}
+
+/* ---- 750px and below: 2 cards per row, compact sizing ----
+   (this range stays 2-up all the way down to 450px, where the
+   dedicated 450px block below continues the same pattern) */
+@media (max-width: 750px) {
+  .project-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .project-card { height: auto; border-radius: 16px; }
+  .project-img-wrap { height: 140px; }
+  .platform-logo { width: 26px; height: 26px; }
+  .project-body { padding: 12px 14px 16px; }
+  .project-title { font-size: 15px; margin-bottom: 2px; }
+  .project-sub { font-size: 10.5px; margin-bottom: 6px; }
+  .project-desc {
+    font-size: 11.5px;
+    line-height: 1.45;
+    -webkit-line-clamp: 2;
+    margin-bottom: 9px;
+  }
+  .link-btn {
+    font-size: 10.5px;
+    padding: 7px 12px;
+    width: 100%;
+    justify-content: center;
+  }
+  .visit-btn {
+    position: static;
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: 10.5px;
+    padding: 7px 12px;
+    margin-top: 6px;
+  }
+}
+
+@media (max-width: 700px) {
+  .project-img-wrap { height: 130px; }
+  .project-body { padding: 11px 13px 15px; }
+  .project-title { font-size: 14.5px; }
+  .project-sub { font-size: 10px; }
+  .project-desc { font-size: 11px; margin-bottom: 8px; }
+  .link-btn { font-size: 10px; padding: 6px 11px; }
+  .visit-btn { font-size: 10px; padding: 6px 11px; }
+}
+
+@media (max-width: 600px) {
+  .project-img-wrap { height: 115px; }
+  .project-body { padding: 10px 12px 14px; }
+  .project-title { font-size: 13.5px; }
+  .project-sub { font-size: 9.5px; }
+  .project-desc { font-size: 10.5px; }
+  .link-btn { font-size: 9.5px; padding: 6px 10px; }
+  .visit-btn { font-size: 9.5px; padding: 6px 10px; }
+}
+
+@media (max-width: 540px) {
+  .project-img-wrap { height: 105px; }
+  .platform-logo { width: 22px; height: 22px; }
+  .project-body { padding: 9px 10px 12px; }
+  .project-title { font-size: 13px; }
+  .project-sub { font-size: 9px; }
+  .project-desc { font-size: 10px; }
+  .link-btn { font-size: 9px; padding: 5px 9px; }
+  .visit-btn { font-size: 9px; padding: 5px 9px; }
+}
+
+@media (max-width: 500px) {
+  .project-img-wrap { height: 100px; }
+  .project-body { padding: 9px 9px 11px; }
+  .project-title { font-size: 12.5px; }
+  .project-desc { font-size: 9.5px; }
+}
+
+@media (max-width: 470px) {
+  .project-img-wrap { height: 95px; }
+  .platform-logo { width: 20px; height: 20px; }
+  .project-body { padding: 8px 8px 10px; }
+  .project-title { font-size: 12.5px; }
+  .project-sub { font-size: 8.5px; }
+  .project-desc { font-size: 9.5px; }
+  .link-btn { font-size: 8.5px; padding: 5px 9px; }
+  .visit-btn { font-size: 8.5px; padding: 5px 9px; }
+}
+
+/* ---- 450px and below: same 2-per-row pattern, final size ---- */
+@media (max-width: 450px) {
+  .project-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .project-card {
+    height: auto;
+    border-radius: 12px;
+  }
+  .project-img-wrap {
+    height: 90px;
+  }
+  .platform-logo {
+    width: 20px;
+    height: 20px;
+    top: 6px;
+    right: 6px;
+  }
+  .project-body {
+    padding: 8px 8px 10px;
+  }
+  .project-title {
+    font-size: 12.5px;
+    margin-bottom: 1px;
+    line-height: 1.25;
+  }
+  .project-sub {
+    font-size: 8.5px;
+    margin-bottom: 5px;
+    line-height: 1.3;
+  }
+  .project-desc {
+    font-size: 9.5px;
+    line-height: 1.4;
+    margin-bottom: 7px;
+    -webkit-line-clamp: 2;
+  }
+  .link-btn {
+    font-size: 8.5px;
+    padding: 5px 9px;
+    gap: 3px;
+    width: 100%;
+    justify-content: center;
+  }
+  .link-btn svg {
+    width: 10px;
+    height: 10px;
+  }
+  .visit-btn {
+    position: static !important;
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: 8.5px;
+    padding: 5px 9px;
+    margin-top: 6px;
+    border-radius: 6px;
+  }
 }
 
 /* ---------- AI Video Generation page ---------- */

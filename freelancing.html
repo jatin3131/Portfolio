@@ -66,7 +66,11 @@
         <a href="social-media.html" class="pill ripple-host">Social Media</a>
         <a href="freelancing.html" class="pill pill-active ripple-host">Freelancing</a>
         <a href="web-development.html" class="pill ripple-host">Web Development</a>
-        <a href="ai-video-generation.html" class="pill ripple-host">AI Video Generation</a>
+        <span class="pill pill-active locked" style="background: #808080; color: #fff; border-color: #868686; pointer-events: none;
+  opacity: 0.6; 
+  cursor: default;">
+  AI Video Generation  <span class="lock">🔒</span>
+</span>
       </nav>
 
     </div>
@@ -88,8 +92,8 @@
               <img class="project-img" src="https://res.cloudinary.com/gmxsu1pq/image/upload/v1785590663/Screenshot_2026-08-01_185347_byysl2.png" alt="Logo Project 1" loading="lazy" />
             </div>
             <div class="project-body">
-              <h3 class="project-title">Logo Project 1</h3>
-              <p class="project-sub">Wordmark — Fernweh Studio</p>
+              <h3 class="project-title">Logo Project </h3>
+              <p class="project-sub">Client: Meersburger Weinstube</p>
               <p class="project-desc">A travel studio needed a mark that felt like movement without leaning on a compass or a globe. The wordmark bends slightly at one letter, just enough to suggest motion.</p>
               <button class="link-btn ripple-host read-more"
                 data-title="Logo Project 1"
@@ -101,34 +105,7 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
               </button><button class="visit-btn" onclick="openInvoiceModal()">220€</button>
 
-<style>
-.visit-btn {
-  position: absolute;
-  right: 20px;
-  padding: 12px 25px;
-  font-size: 16px;
-  border: none;
-  border-radius: 8px;
-  background: #00bfff;
-  color: white;
-  cursor: pointer;
-  animation: pop 3s infinite;
-  width: fit-content;
-  white-space: nowrap;
-}
 
-@keyframes pop {
-  0%, 85%, 100% {
-    transform: scale(1);
-  }
-  90% {
-    transform: scale(1.15);
-  }
-  95% {
-    transform: scale(1);
-  }
-}
-</style>
 <div id="invoiceModal" class="modal">
   <div class="modal-content">
     <span class="close" onclick="closeInvoiceModal()">&times;</span>
@@ -202,16 +179,19 @@ document.addEventListener("keydown", function(e){
 
       <article class="project-card" style="animation-delay: 80ms">
   <div class="project-img-wrap" data-coming-soon="true" onclick="openComingSoonModal()">
-    <img class="project-img" src="https://picsum.photos/seed/loom-logo/1000/720" alt="Logo Project 2" loading="lazy" />
+    <img class="project-img" src="https://res.cloudinary.com/gmxsu1pq/image/upload/v1785939571/ChatGPT_Image_Aug_5_2026_07_47_42_PM_ibzvu5.png" alt="Logo Project 2" loading="lazy" />
   </div>
   <div class="project-body">
-    <h3 class="project-title">Logo Project 2</h3>
-    <p class="project-sub">Emblem — Loom &amp; Co.</p>
-    <p class="project-desc">A home goods brand wanted a mark that could live on a fabric tag as easily as a storefront sign. Built from a single continuous line, simplified to work at 12px.</p>
+    <h3 class="project-title">Restaurant Wall Painting – AI Illustration</h3>
+    <p class="project-sub">Client: Imelda Fakaras</p>
+    <p class="project-desc">I worked on this AI illustration to depict a professional restaurant wall painting project with a clean, modern aesthetic. The artwork highlights the precision and craftsmanship involved in transforming commercial interior spaces.
+</p>
     <button class="link-btn ripple-host read-more" type="button" data-coming-soon="true" onclick="openComingSoonModal()">
       Read More
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-    </button>
+    </button><button class="visit-btn" onclick="openComingSoonModal()">260€</button>
+
+
   </div>
 </article>
 
