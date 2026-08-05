@@ -16,6 +16,180 @@
 
 * { box-sizing: border-box; }
 
+/* jnbCW — Contact Widget styles, fully namespaced */
+
+.jnbCW-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 62px;
+  height: 62px;
+  border-radius: 31px;
+  background: linear-gradient(135deg, #8a6cff, #5b3df0);
+  box-shadow: 0 10px 28px -6px rgba(91, 61, 240, 0.55);
+  overflow: hidden;
+  z-index: 999999;
+  cursor: pointer;
+  transition:
+    width 0.45s cubic-bezier(.65,0,.35,1),
+    height 0.45s cubic-bezier(.65,0,.35,1) 0.45s,
+    border-radius 0.4s ease;
+}
+
+.jnbCW-container.jnbCW-open {
+  width: 320px;
+  height: 380px;
+  border-radius: 22px;
+  cursor: default;
+  box-shadow: 0 20px 50px -10px rgba(20, 15, 50, 0.4);
+}
+
+@media (max-width: 420px) {
+  .jnbCW-container.jnbCW-open {
+    width: calc(100vw - 32px);
+    right: 16px;
+  }
+}
+
+/* pulsing ring, fires once every 10s */
+.jnbCW-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(138, 108, 255, 0.55);
+  animation: jnbCW-pulse 10s ease-out infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+.jnbCW-container.jnbCW-open::before {
+  display: none;
+}
+
+@keyframes jnbCW-pulse {
+  0%    { transform: scale(1);    opacity: 0.65; }
+  9%    { transform: scale(1.65); opacity: 0; }
+  100%  { transform: scale(1);    opacity: 0; }
+}
+
+/* toggle icon button */
+.jnbCW-toggle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.jnbCW-toggle:hover {
+  transform: scale(1.08);
+}
+.jnbCW-container.jnbCW-open .jnbCW-toggle {
+  opacity: 0;
+  pointer-events: none;
+}
+.jnbCW-icon {
+  display: block;
+}
+
+/* expanded content */
+.jnbCW-content {
+  position: absolute;
+  inset: 0;
+  padding: 22px 20px 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+}
+.jnbCW-container.jnbCW-open .jnbCW-content {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.4s ease 0.75s;
+}
+
+.jnbCW-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.jnbCW-close:hover {
+  background: rgba(255,255,255,0.3);
+  transform: rotate(90deg);
+}
+
+.jnbCW-heading {
+  margin: 6px 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.jnbCW-sub {
+  margin: 0 0 22px;
+  font-size: 13.5px;
+  color: rgba(255,255,255,0.75);
+}
+
+.jnbCW-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  text-decoration: none;
+  color: #fff;
+  margin-bottom: 12px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.jnbCW-item:hover {
+  background: rgba(255,255,255,0.18);
+  transform: translateX(2px);
+}
+
+.jnbCW-item-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jnbCW-item-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.jnbCW-item-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.65);
+}
+.jnbCW-item-value {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 html { scroll-behavior: smooth; }
 
 body {
@@ -102,7 +276,7 @@ button { font-family: inherit; }
   bottom: -600px;
   visibility: hidden;
   height: 60px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.85), rgba(255,255,255,0));
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.85), rgba(255,255,255,0));
   pointer-events: none;
 }
 
@@ -417,6 +591,84 @@ button { font-family: inherit; }
   font-weight: 500;
   opacity: 0.85;
   margin-top: 1px;
+}
+
+
+/* jnbCW — Responsive breakpoints */
+
+@media (max-width: 750px) {
+  .jnbCW-container { right: 20px; bottom: 20px; width: 58px; height: 58px; }
+  .jnbCW-container.jnbCW-open { width: 300px; height: 360px; }
+}
+
+@media (max-width: 700px) {
+  .jnbCW-container.jnbCW-open { width: 280px; height: 350px; }
+}
+
+@media (max-width: 600px) {
+  .jnbCW-container { right: 18px; bottom: 18px; width: 54px; height: 54px; }
+  .jnbCW-container.jnbCW-open {
+    width: calc(100vw - 36px);
+    height: 340px;
+  }
+  .jnbCW-icon { width: 22px; height: 22px; }
+}
+
+@media (max-width: 540px) {
+  .jnbCW-container.jnbCW-open { height: 330px; }
+  .jnbCW-heading { font-size: 20px; }
+  .jnbCW-sub { font-size: 13px; margin-bottom: 18px; }
+}
+
+@media (max-width: 500px) {
+  .jnbCW-container { right: 16px; bottom: 16px; width: 52px; height: 52px; }
+  .jnbCW-container.jnbCW-open {
+    width: calc(100vw - 32px);
+    height: 320px;
+    border-radius: 18px;
+  }
+  .jnbCW-content { padding: 18px 16px 16px; }
+}
+
+@media (max-width: 470px) {
+  .jnbCW-item { padding: 10px 10px; margin-bottom: 10px; }
+  .jnbCW-item-icon { width: 30px; height: 30px; }
+  .jnbCW-item-value { font-size: 13px; }
+}
+
+@media (max-width: 450px) {
+  .jnbCW-container { right: 14px; bottom: 14px; width: 50px; height: 50px; }
+  .jnbCW-container.jnbCW-open {
+    width: calc(100vw - 28px);
+    right: 14px;
+    height: 310px;
+  }
+  .jnbCW-icon { width: 20px; height: 20px; }
+}
+
+@media (max-width: 400px) {
+  .jnbCW-container.jnbCW-open {
+    width: calc(100vw - 24px);
+    right: 12px;
+    height: 300px;
+  }
+  .jnbCW-heading { font-size: 18px; }
+  .jnbCW-sub { font-size: 12px; margin-bottom: 16px; }
+  .jnbCW-close { width: 26px; height: 26px; top: 12px; right: 12px; }
+}
+
+@media (max-width: 300px) {
+  .jnbCW-container { right: 10px; bottom: 10px; width: 46px; height: 46px; }
+  .jnbCW-container.jnbCW-open {
+    width: calc(100vw - 20px);
+    right: 10px;
+    height: 290px;
+    padding: 0;
+  }
+  .jnbCW-content { padding: 14px 12px 12px; }
+  .jnbCW-heading { font-size: 16px; }
+  .jnbCW-item-label { font-size: 10px; }
+  .jnbCW-item-value { font-size: 12px; }
 }
 
 /* ---------- Ripple ---------- */

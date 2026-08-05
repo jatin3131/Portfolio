@@ -594,7 +594,51 @@ function initHeaderModalTrigger(buttonSelector, modalId) {
    page height. Since the blob effect itself has been removed from
    the design, that logic is gone too, not just hidden.
    ============================================================ */
+/* ============================================================
+   jnbCW — CONTACT WIDGET (floating bottom-right contact button)
+   ============================================================ */
+function initContactWidget() {
+  const jnbCW_container = document.getElementById('jnbCW-container');
+  const jnbCW_toggleBtn  = document.getElementById('jnbCW-toggle');
+  const jnbCW_closeBtn   = document.getElementById('jnbCW-close');
 
+  if (!jnbCW_container || !jnbCW_toggleBtn || !jnbCW_closeBtn) {
+    console.warn('jnbCW: widget elements not found in the DOM.');
+    return;
+  }
+
+  function jnbCW_open() {
+    jnbCW_container.classList.add('jnbCW-open');
+  }
+  function jnbCW_close() {
+    jnbCW_container.classList.remove('jnbCW-open');
+  }
+
+  jnbCW_toggleBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    jnbCW_open();
+  });
+
+  jnbCW_closeBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    jnbCW_close();
+  });
+
+  jnbCW_container.addEventListener('click', (e) => {
+    if (jnbCW_container.classList.contains('jnbCW-open')) {
+      e.stopPropagation();
+    }
+  });
+
+  document.addEventListener('click', () => jnbCW_close());
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') jnbCW_close();
+  });
+
+  console.log('jnbCW: widget initialized successfully.');
+}
 
    
 document.addEventListener("DOMContentLoaded", () => {
@@ -611,4 +655,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initHeaderModalTrigger(".workexp-btn", "workexp-modal");
   initHeaderModalTrigger(".cert-btn", "cert-modal");
   initHeaderModalTrigger(".about-btn", "about-modal");
+    initContactWidget();
 });
