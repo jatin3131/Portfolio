@@ -220,6 +220,17 @@ button { font-family: inherit; }
   }
 }
 
+
+@media (max-width: 490px) {
+  .explore-btn {
+    padding: 1px 6px;
+    font-size: 5px;
+    position: relative;
+    z-index: 99999;
+    margin-right: 9px;
+  }
+}
+
 .explore-btn:hover {
   background: var(--accent);
   border-color: var(--accent);
