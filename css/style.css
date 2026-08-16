@@ -266,13 +266,25 @@ button { font-family: inherit; }
   }
 }
 
+.topbar.topbar-expanded {
+  height: auto;
+  overflow: visible;
+ 
+}
 
+@media (max-width: 739px) {
+  .topbar.topbar-expanded {
+    height: auto;
+    overflow: visible;
+  }
+}
 /* soft fade so it doesn't end on a hard line */
 .topbar::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
+  
   bottom: -600px;
   visibility: hidden;
   height: 60px;
@@ -310,9 +322,11 @@ button { font-family: inherit; }
   }
 }
 .brand-name {
-  font-family: 'times now roman', serif;
+  font-family: 'times now roman', bold;
+  font-style: bold;
   font-weight: 600z0;
-  font-size: 58px;
+  font-size: 59px;
+
   padding: 0px;
   letter-spacing: -0.01em;
   color: var(--text);
@@ -320,6 +334,7 @@ button { font-family: inherit; }
 .brand-role {
   font-family: 'Sora', sans-serif;
   font-size: 13.5px;
+  visibility: hidden;
 
   color:#1578f9;
   letter-spacing: 0.05em;
@@ -329,11 +344,13 @@ button { font-family: inherit; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(233, 129, 10, 0.92);;
+  font-style: underline;
+  
+  background: rgba(255, 255, 255, 0.92);;
   color: var(--text);
   border: 1.5px solid var(--border);
   padding: 14px 24px;
-  border-radius: 999px;
+  border-radius: 9px;
   font-family: 'Sora', sans-serif;
   font-weight: 600;
   font-size: 14.5px;
@@ -450,8 +467,53 @@ button { font-family: inherit; }
     
   }
 }
+/* ---------- "My Projects" label above the category pills ---------- */
+.pills-heading-row {
+  position: relative;
+  z-index: 2;
+}
 
-.about-btn.pulse { animation: aboutPulse 2.8s ease-in-out infinite; }
+.pills-heading {
+  position: absolute;
+  top: -20px;
+  left: 2px;
+  font-family: 'Fraunces', serif;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #2B2430;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.pills-heading::after {
+  content: "";
+  display: block;
+  width: 38px;
+  height: 3px;
+  margin-top:  -30px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+/* keep clear of the pills' own negative margin-top as the layout tightens */
+@media (max-width: 1340px) {
+  .pills-heading { top: -16px; font-size: 12px; }
+}
+@media (max-width: 739px) {
+  .pills-heading { top: -14px; font-size: 11px; }
+}
+@media (max-width: 599px) {
+  .pills-heading { top: -12px; font-size: 10px; }
+}
+@media (max-width: 492px) {
+  .pills-heading { top: -10px; font-size: 8.5px; }
+}
+@media (max-width: 455px) {
+  .pills-heading { top: -9px; font-size: 8px; }
+}
+.about-btn.pulse,.cert-btn,.edu-btn,.workexp-btn  { animation: aboutPulse 2.8s ease-in-out infinite; }
 @keyframes aboutPulse {
   0%, 100% { transform: scale(1); box-shadow: 0 10px 20px -14px rgba(255, 147, 118, 0.3); }
   50% { transform: scale(1.04); box-shadow: 0 14px 28px -10px rgba(255, 147, 118, 0.55); }
@@ -462,12 +524,38 @@ button { font-family: inherit; }
   display: flex;
   flex-wrap: wrap;
   gap: 9px;
-  padding-bottom: 56px;
+  padding-bottom: 8px;
+  position: relative;
 }
+
+/* Greyish tab underline sitting behind the pills — bleeds edge-to-edge,
+   same full-viewport length as .topbar, and shares the topbar's own
+   bottom curve so it never squares off the corners */
+.pills-row::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background: #e2e2e4;
+  border-radius: 0 0 46px 46px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@media (max-width: 739px) {
+  .pills-row::before {
+    border-radius: 0 0 32px 32px;
+  }
+}
+
 .pill {
   font-family: 'Sora', sans-serif;
   font-weight: 500;
   font-size: 14px;
+  top: 9px;
   padding: 11px 20px;
   border-radius: 999px;
   border: 1.5px solid var(--border);
@@ -475,6 +563,8 @@ button { font-family: inherit; }
   color: #2B2430;
   cursor: pointer;
   display: inline-block;
+  position: relative;
+  z-index: 1;
   transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease, border-color 0.25s ease, box-shadow 0.3s ease;
 }
 
@@ -592,8 +682,41 @@ button { font-family: inherit; }
   opacity: 0.85;
   margin-top: 1px;
 }
+/* ---------- More Projects toggle + expandable row ---------- */
+.more-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+}
+.more-pill-arrow {
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+.more-pill.pill-active .more-pill-arrow {
+  transform: rotate(180deg);
+}
 
+.pills-extra-row {
+  flex-basis: 100%;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  max-height: 0;
+  opacity: 0;
+  overflow: ;
+  margin-top: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.4s ease;
+}
 
+.pills-extra-row.open {
+  opacity: 1;
+  margin-top: 9px;
+  padding-bottom: 14px; /* NOT transitioned on purpose — see JS note below */
+}
+  /* max-height is now set inline by JS to the real content height */
+}
 /* jnbCW — Responsive breakpoints */
 
 @media (max-width: 750px) {
@@ -685,7 +808,28 @@ button { font-family: inherit; }
 @keyframes rippleAnim {
   to { transform: scale(1); opacity: 0; }
 }
+/* Horizontal divider between the hero pills (top actions) and the category pills — only below 1340px */
+@media (max-width: 1340px) {
+  .pills-row {
+    border-top: 2px solid #000000;
+    padding-top: 18px;
+    margin-top: 6px;
+  }
+}
 
+@media (max-width: 735px) {
+  .pills-row {
+    border-top: 2px solid #000000;
+    padding-top: px;
+    margin-top: -19px;
+    top: -19px;
+
+  }
+  .pill {
+    margin-top: -8px;
+  }
+ 
+}
 /* ---------- Hero ---------- */
 .main-area { min-height: 60vh; padding-bottom: 100px; }
 .hero {
@@ -721,7 +865,7 @@ button { font-family: inherit; }
   border-radius: 24px;
   overflow: hidden;
   position: relative;
-  background: var(--accent-soft);
+  background: var(--accent-);
   box-shadow: 0 30px 60px -32px rgba(60, 60, 65, 0.22);
   transform: scale(0.82);
   opacity: 0.45;
@@ -1320,7 +1464,79 @@ button { font-family: inherit; }
   letter-spacing: 0.01em;
   pointer-events: none;
 }
+/* Cinematic cards: landscape instead of the 9:16 reels ratio */
+.video-card.video-cinematic {
+  aspect-ratio: 16 / 9;
+}
 
+/* auto-fill min width needs to be wider so landscape cards don't get squashed —
+   scope it so basic cards keep their narrower 210px min.
+   Driven entirely by the .grid-cinematic class (toggled in JS based on the
+   active tab), NOT :has(), since cinematic cards stay in the DOM (just
+   display:none) when the Basic tab is active — :has() would always match. */
+.video-grid {
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+}
+.video-grid.grid-cinematic {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+/* No hover-play affordance on cinematic cards */
+.video-card.video-cinematic .video-play-overlay {
+  display: none;
+}
+
+/* Fullscreen toggle button — always visible when not fullscreen (not
+   hover-gated) so it's reliably tappable on touch / small screens. */
+.video-fullscreen-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transform: scale(1);
+  transition: background 0.3s ease, transform 0.25s ease;
+  cursor: pointer;
+  z-index: 6;
+  box-shadow: 0 8px 16px -8px rgba(0,0,0,0.22);
+}
+
+.video-fullscreen-btn:hover { background: #fff; transform: scale(1.1); }
+
+/* Center play/pause button — shown on hover only, sits centered on the card */
+.video-center-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.25s ease, background 0.3s ease;
+  cursor: pointer;
+  z-index: 6;
+  box-shadow: 0 12px 26px -8px rgba(0,0,0,0.3);
+}
+.video-card.video-cinematic:hover .video-center-btn {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.video-center-btn:hover { background: #fff; transform: translate(-50%, -50%) scale(1.08); }
 .video-prompt-btn {
   position: absolute;
   top: 10px;

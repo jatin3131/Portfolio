@@ -63,15 +63,24 @@
       </header>
 
       <nav class="pills-row" aria-label="Project categories">
-        <a href="social-media.html" class="pill ripple-host">Social Media</a>
-        <a href="freelancing.html" class="pill pill-active ripple-host">Freelancing</a>
-        <a href="web-development.html" class="pill ripple-host">Web Development</a>
-        <span class="pill pill-active locked" style="background: #808080; color: #fff; border-color: #868686; pointer-events: none;
-  opacity: 0.6; 
-  cursor: default;">
-  AI Video Generation  <span class="lock">🔒</span>
-</span>
-      </nav>
+  <span class="pills-heading">My Projects</span>
+  <a href="social-media.html" class="pill  ripple-host">Social Media</a>
+  <a href="freelancing.html" class="pill pill-active ripple-host">Freelancing</a>
+  <a href="web-development.html" class="pill ripple-host">Web Development</a>
+
+  <button type="button" class="pill more-pill ripple-host" id="morePillsToggle" aria-expanded="false" aria-controls="morePillsRow">
+    More Projects
+    <svg class="more-pill-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </button>
+
+  <div class="pills-extra-row" id="morePillsRow">
+    <a href="AIMI.html" class="pill ripple-host">AIMI</a>
+    <!-- add future pills here, e.g. -->
+    <!-- <a href="new-category.html" class="pill ripple-host">New Category</a> -->
+  </div>
+</nav>
 
     </div>
   </div>
@@ -118,6 +127,7 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
     </a>
   </div>
 </div>
+  <div id="page-content">
   <div class="app-inner">
 
     <main class="main-area">
@@ -862,35 +872,8 @@ function closeComingSoonModal(e) {
     <img id="cert-lightbox-img" src="" alt="Certificate preview" />
   </div>
 
-<script>
-  (function(){
-    const lightbox = document.getElementById('cert-lightbox');
-    const lightboxImg = document.getElementById('cert-lightbox-img');
-
-    document.querySelectorAll('.cert-image img').forEach(img => {
-      img.addEventListener('click', () => {
-        lightboxImg.src = img.src;
-        lightboxImg.alt = img.alt || 'Certificate preview';
-        lightbox.classList.add('open');
-      });
-    });
-
-    function closeCertLightbox(){
-      lightbox.classList.remove('open');
-      lightboxImg.src = '';
-    }
-
-    document.querySelector('.cert-lightbox-close').addEventListener('click', closeCertLightbox);
-
-    lightbox.addEventListener('click', (e) => {
-      if(e.target === lightbox) closeCertLightbox();
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if(e.key === 'Escape') closeCertLightbox();
-    });
-  })();
-</script>
+<!-- cert-lightbox logic now lives in js/main.js (initCertLightbox), so it
+     keeps working after pjax navigation swaps this content out -->
 
 
 
@@ -923,6 +906,7 @@ function closeComingSoonModal(e) {
         </div>
       </div>
     </div>
+  </div>
   </div>
 
   <script src="js/main.js"></script>

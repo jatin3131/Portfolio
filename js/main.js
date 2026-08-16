@@ -1,8 +1,10 @@
 /* ============================================================
    RIPPLE EFFECT — any element with class "ripple-host"
    ============================================================ */
-function initRipples() {
-  document.querySelectorAll(".ripple-host").forEach((host) => {
+function initRipples(root) {
+  (root || document).querySelectorAll(".ripple-host").forEach((host) => {
+    if (host.dataset.rippleBound) return; // never double-bind a host
+    host.dataset.rippleBound = "true";
     host.addEventListener("click", (e) => {
       const rect = host.getBoundingClientRect();
       const size = Math.max(rect.width, rect.height) * 2;
@@ -23,6 +25,7 @@ function initRipples() {
 }
 
 
+
 function showWvNoteModal() {
   document.getElementById('wvNoteModalOverlay').classList.add('wv-active');
 }
@@ -31,10 +34,11 @@ function closeWvNoteModal() {
   document.getElementById('wvNoteModalOverlay').classList.remove('wv-active');
 }
 
-const wvNoteModalOverlay = document.getElementById('wvNoteModalOverlay');
-if (wvNoteModalOverlay) {
-  wvNoteModalOverlay.addEventListener('click', function (e) {
-    if (e.target === this) {
+// Delegated so this keeps working no matter how many times the overlay
+// underneath gets replaced by pjax navigation.
+function initWvNoteModal() {
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'wvNoteModalOverlay') {
       closeWvNoteModal();
     }
   });
@@ -407,6 +411,7 @@ function initHeroCarousel() {
 function initVideoTabs() {
   const tabs = document.querySelectorAll(".video-tab");
   const cards = document.querySelectorAll(".video-card");
+  const grid = document.querySelector(".video-grid");
   if (!tabs.length) return;
 
   function applyFilter(filter) {
@@ -414,12 +419,11 @@ function initVideoTabs() {
     cards.forEach((c) => {
       c.style.display = c.dataset.category === filter ? "" : "none";
     });
+    if (grid) grid.classList.toggle("grid-cinematic", filter === "cinematic");
   }
 
   tabs.forEach((t) =>
-    t.addEventListener("click", () => {
-      applyFilter(t.dataset.filter);
-    })
+    t.addEventListener("click", () => applyFilter(t.dataset.filter))
   );
 
   const defaultTab = document.querySelector(".video-tab[data-default]") || tabs[0];
@@ -431,19 +435,21 @@ function initVideoTabs() {
 let promptModalOpen = false;
 
 function initVideoHoverPlay() {
-  document.querySelectorAll(".video-card").forEach((card) => {
+  document.querySelectorAll(".video-card:not(.video-cinematic)").forEach((card) => {
     const video = card.querySelector("video");
     if (!video) return;
 
-    video.muted = true;
-    video.defaultMuted = true;
+    video.muted = false;
+    video.defaultMuted = false;
     video.playsInline = true;
 
     const tryPlay = () => {
       const p = video.play();
       if (p && typeof p.catch === "function") {
         p.catch(() => {
-          /* Autoplay blocked — it will just sit on its first frame. */
+          // Audible autoplay blocked by the browser — fall back to muted play
+          video.muted = true;
+          video.play().catch(() => {});
         });
       }
     };
@@ -454,7 +460,6 @@ function initVideoHoverPlay() {
       video.pause();
       video.currentTime = 0;
     });
-    // touch devices / plain clicks on the card itself: toggle playback
     card.addEventListener("click", (e) => {
       if (e.target.closest(".video-prompt-btn")) return;
       if (video.paused) tryPlay();
@@ -463,6 +468,87 @@ function initVideoHoverPlay() {
   });
 }
 
+function initCinematicVideos() {
+  document.querySelectorAll(".video-card.video-cinematic").forEach((card) => {
+    const video = card.querySelector("video");
+    const fsBtn = card.querySelector(".video-fullscreen-btn");
+    const centerBtn = card.querySelector(".video-center-btn");
+    if (!video) return;
+
+    video.muted = false;
+    video.defaultMuted = false;
+    video.playsInline = true;
+
+    const togglePlay = () => {
+      if (video.paused) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    };
+
+    // Click the card itself (outside the fullscreen/prompt/center buttons) to play/pause
+    card.addEventListener("click", (e) => {
+      if (
+        e.target.closest(".video-fullscreen-btn") ||
+        e.target.closest(".video-prompt-btn") ||
+        e.target.closest(".video-center-btn")
+      ) return;
+      togglePlay();
+    });
+
+    // Center play/pause button — visible on hover
+    if (centerBtn) {
+      const cbPlay = centerBtn.querySelector(".cb-play");
+      const cbPause = centerBtn.querySelector(".cb-pause");
+
+      const syncCenterIcon = () => {
+        if (!cbPlay || !cbPause) return;
+        cbPlay.style.display = video.paused ? "block" : "none";
+        cbPause.style.display = video.paused ? "none" : "block";
+      };
+
+      centerBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        togglePlay();
+      });
+
+      video.addEventListener("play", syncCenterIcon);
+      video.addEventListener("pause", syncCenterIcon);
+      syncCenterIcon();
+    }
+
+    if (!fsBtn) return;
+    const expandIcon = fsBtn.querySelector(".fs-expand");
+    const collapseIcon = fsBtn.querySelector(".fs-collapse");
+
+    fsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!document.fullscreenElement) {
+        video.play().catch(() => {});
+        if (video.requestFullscreen) video.requestFullscreen();
+        else if (video.webkitEnterFullscreen) video.webkitEnterFullscreen(); // iOS Safari
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    });
+
+    video.addEventListener("fullscreenchange", () => {
+      const isFs = document.fullscreenElement === video;
+      card.classList.toggle("is-fullscreen", isFs);
+      if (expandIcon) expandIcon.style.display = isFs ? "none" : "block";
+      if (collapseIcon) collapseIcon.style.display = isFs ? "block" : "none";
+    });
+
+    // iOS Safari fires this instead of fullscreenchange
+    video.addEventListener("webkitendfullscreen", () => {
+      card.classList.remove("is-fullscreen");
+      if (expandIcon) expandIcon.style.display = "block";
+      if (collapseIcon) collapseIcon.style.display = "none";
+      video.pause();
+    });
+  });
+}
 /* ============================================================
    SHARED PROMPT MODAL — used by both the video-prompt button and
    the AI Illustrations grid. Optionally shows an image up top.
@@ -549,39 +635,133 @@ function initIllustrationGrid(promptModal) {
     });
   });
 }
+/* ============================================================
+   MORE PROJECTS PILL — expandable second row of category pills
+   ============================================================ */
+function initMorePillsToggle() {
+  const toggleBtn = document.getElementById("morePillsToggle");
+  const extraRow = document.getElementById("morePillsRow");
+  const topbar = document.querySelector(".topbar");
+  if (!toggleBtn || !extraRow) return;
 
+  function openRow(animate = true) {
+    // When the row needs to be open on page load (active pill is hidden
+    // inside it), skip the transition entirely so it doesn't visibly
+    // "grow open" every time the page/navbar loads — it should just
+    // already look open.
+    if (!animate) extraRow.classList.add("no-anim");
+
+    extraRow.classList.add("open");
+    // measure actual wrapped height (works for any screen width / pill count)
+    extraRow.style.maxHeight = extraRow.scrollHeight + "px";
+    toggleBtn.classList.add("pill-active");
+    toggleBtn.setAttribute("aria-expanded", "true");
+    if (topbar) topbar.classList.add("topbar-expanded");
+
+    if (!animate) {
+      // force a reflow so the "no-anim" state is actually painted once,
+      // then remove it so future (real, user-triggered) toggles animate again
+      void extraRow.offsetHeight;
+      requestAnimationFrame(() => {
+        extraRow.classList.remove("no-anim");
+      });
+    }
+  }
+
+  function closeRow() {
+    // set explicit height first so the collapse transition has something to animate from
+    extraRow.style.maxHeight = extraRow.scrollHeight + "px";
+    requestAnimationFrame(() => {
+      extraRow.style.maxHeight = "0px";
+    });
+    extraRow.classList.remove("open");
+    toggleBtn.classList.remove("pill-active");
+    toggleBtn.setAttribute("aria-expanded", "false");
+    if (topbar) topbar.classList.remove("topbar-expanded");
+  }
+
+  // Auto-open if the active category lives inside the hidden row —
+  // instantly, with no transition (this runs on every page load).
+  if (extraRow.querySelector(".pill-active")) {
+    openRow(false);
+  }
+
+  toggleBtn.addEventListener("click", () => {
+    const isOpen = extraRow.classList.contains("open");
+    isOpen ? closeRow() : openRow(true);
+  });
+
+  // Recalculate height on resize/orientation change, so it never gets
+  // stuck at a stale value if pills reflow to more/fewer lines.
+  window.addEventListener("resize", () => {
+    if (extraRow.classList.contains("open")) {
+      extraRow.style.maxHeight = extraRow.scrollHeight + "px";
+    }
+  });
+}
 /* ============================================================
    HEADER MODAL TRIGGERS — About Me, Work Experience, Certifications.
    Same simple open/close pattern for all three; About Me additionally
    has a one-time attention pulse that stops after the first click.
    ============================================================ */
-function initHeaderModalTrigger(buttonSelector, modalId) {
-  const btn = document.querySelector(buttonSelector);
-  const overlay = document.getElementById(modalId);
-  if (!btn || !overlay) return;
+/* ============================================================
+   HEADER MODAL TRIGGERS — About Me, Work Experience, Certifications,
+   Education. The trigger buttons live in the topbar, which is
+   persistent and never reloaded. The overlay panels live in the
+   page content, which DOES get swapped out on every pjax navigation
+   (see PJAX section below). So: bind the "open" click once per
+   button (fine, buttons never disappear), but always look the
+   overlay up fresh by ID at click time, and handle "close" via
+   document-level delegation instead of binding straight to the
+   overlay/close-button elements — that way it keeps working no
+   matter how many times the overlay node underneath gets replaced.
+   ============================================================ */
+function initHeaderModalTriggers() {
+  const triggers = [
+    [".edu-btn", "education-modal"],
+    [".workexp-btn", "workexp-modal"],
+    [".cert-btn", "cert-modal"],
+    [".about-btn", "about-modal"],
+  ];
+  const modalIds = triggers.map(([, id]) => id);
 
-  const closeBtn = overlay.querySelector(".detail-close");
-
-  function open() {
+  function openOverlay(overlay) {
     overlay.classList.add("open");
     document.body.style.overflow = "hidden";
   }
-  function close() {
+  function closeOverlay(overlay) {
     overlay.classList.remove("open");
     document.body.style.overflow = "";
   }
 
-  btn.addEventListener("click", () => {
-    btn.classList.remove("pulse");
-    open();
+  triggers.forEach(([selector, modalId]) => {
+    const btn = document.querySelector(selector);
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      btn.classList.remove("pulse");
+      const overlay = document.getElementById(modalId); // always current, swap-safe
+      if (overlay) openOverlay(overlay);
+    });
   });
 
-  closeBtn.addEventListener("click", close);
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) close();
+  document.addEventListener("click", (e) => {
+    const closeBtn = e.target.closest(".detail-close");
+    if (closeBtn) {
+      const overlay = closeBtn.closest(".detail-overlay");
+      if (overlay && modalIds.includes(overlay.id)) closeOverlay(overlay);
+      return;
+    }
+    if (e.target.classList && e.target.classList.contains("detail-overlay")) {
+      if (modalIds.includes(e.target.id)) closeOverlay(e.target);
+    }
   });
+
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && overlay.classList.contains("open")) close();
+    if (e.key !== "Escape") return;
+    modalIds.forEach((id) => {
+      const overlay = document.getElementById(id);
+      if (overlay && overlay.classList.contains("open")) closeOverlay(overlay);
+    });
   });
 }
 
@@ -597,7 +777,43 @@ function initHeaderModalTrigger(buttonSelector, modalId) {
 /* ============================================================
    jnbCW — CONTACT WIDGET (floating bottom-right contact button)
    ============================================================ */
-function initContactWidget() {
+
+
+/* ============================================================
+   CERTIFICATE LIGHTBOX — click any certificate image inside the
+   Certifications modal to view it enlarged. Lives in page content
+   (the cert-modal gets swapped on every pjax navigation), so this
+   just needs to be re-run each time that content loads in.
+   ============================================================ */
+function initCertLightbox() {
+  const lightbox = document.getElementById('cert-lightbox');
+  const lightboxImg = document.getElementById('cert-lightbox-img');
+  const closeBtn = document.querySelector('.cert-lightbox-close');
+  if (!lightbox || !lightboxImg || !closeBtn) return;
+
+  document.querySelectorAll('.cert-image img').forEach((img) => {
+    img.addEventListener('click', () => {
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt || 'Certificate preview';
+      lightbox.classList.add('open');
+    });
+  });
+
+  function closeCertLightbox() {
+    lightbox.classList.remove('open');
+    lightboxImg.src = '';
+  }
+
+  closeBtn.addEventListener('click', closeCertLightbox);
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) closeCertLightbox();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeCertLightbox();
+  });
+}
+
+   function initContactWidget() {
   const jnbCW_container = document.getElementById('jnbCW-container');
   const jnbCW_toggleBtn  = document.getElementById('jnbCW-toggle');
   const jnbCW_closeBtn   = document.getElementById('jnbCW-close');
@@ -641,19 +857,173 @@ function initContactWidget() {
 }
 
    
-document.addEventListener("DOMContentLoaded", () => {
-  initRipples();
+/* ============================================================
+   PJAX-STYLE NAVIGATION
+   The problem this solves: this is a plain multi-page site, so
+   every internal link click was doing a full browser reload —
+   which reloads and re-paints the topbar too (that's the "flash").
+   This intercepts clicks on internal .html links, fetches the
+   destination page in the background, and swaps out ONLY the
+   #page-content container. The topbar element itself is never
+   touched, so it never reloads or re-animates between pages.
+
+   A page opts into this simply by having a `<div id="page-content">`
+   wrapping everything below the topbar. Any page that doesn't have
+   that wrapper yet (not converted over) is handled gracefully: this
+   just falls back to a normal full page load for it, same as today.
+   ============================================================ */
+const PJAX_CONTENT_ID = "page-content";
+let pjaxBusy = false;
+
+function pjaxSetActivePill(url) {
+  const path = new URL(url, window.location.href).pathname.split("/").pop();
+  document.querySelectorAll(".pills-row .pill").forEach((pill) => {
+    const pillPath = (pill.getAttribute("href") || "").split("/").pop();
+    pill.classList.toggle("pill-active", !!pillPath && pillPath === path);
+  });
+}
+
+// Keep "More Projects" open/closed to match the newly active pill —
+// instantly, no animation, since this is a sync, not a user click.
+function pjaxSyncMorePillsRow() {
+  const extraRow = document.getElementById("morePillsRow");
+  const toggleBtn = document.getElementById("morePillsToggle");
+  const topbar = document.querySelector(".topbar");
+  if (!extraRow || !toggleBtn) return;
+
+  const shouldBeOpen = !!extraRow.querySelector(".pill-active");
+  const isOpen = extraRow.classList.contains("open");
+  if (shouldBeOpen === isOpen) return;
+
+  extraRow.classList.add("no-anim");
+  if (shouldBeOpen) {
+    extraRow.classList.add("open");
+    extraRow.style.maxHeight = extraRow.scrollHeight + "px";
+    toggleBtn.classList.add("pill-active");
+    toggleBtn.setAttribute("aria-expanded", "true");
+    if (topbar) topbar.classList.add("topbar-expanded");
+  } else {
+    extraRow.classList.remove("open");
+    extraRow.style.maxHeight = "0px";
+    toggleBtn.classList.remove("pill-active");
+    toggleBtn.setAttribute("aria-expanded", "false");
+    if (topbar) topbar.classList.remove("topbar-expanded");
+  }
+  void extraRow.offsetHeight; // force reflow so the instant state actually paints
+  requestAnimationFrame(() => extraRow.classList.remove("no-anim"));
+}
+
+function pjaxIsEligible(link) {
+  const href = link.getAttribute("href");
+  if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
+  if (link.target && link.target !== "_self") return false;
+  if (link.hasAttribute("download")) return false;
+  let url;
+  try {
+    url = new URL(href, window.location.href);
+  } catch (e) {
+    return false;
+  }
+  if (url.origin !== window.location.origin) return false;
+  if (!/\.html?$/i.test(url.pathname)) return false;
+  return true;
+}
+
+// All the initializers that target elements living INSIDE #page-content.
+// Safe to call over and over — the elements underneath are brand new
+// nodes every time (old ones were just discarded with the old container),
+// so there's no risk of double-binding listeners.
+function initPageContent(root) {
+  initRipples(root || document);
   initDetailModal();
   initImageClickToOpenModal();
   initHeroCarousel();
   initVideoTabs();
   initVideoHoverPlay();
+  initCinematicVideos();
   const promptModal = initPromptModal();
   initVideoPromptButtons(promptModal);
   initIllustrationGrid(promptModal);
-  initHeaderModalTrigger(".edu-btn", "education-modal");
-  initHeaderModalTrigger(".workexp-btn", "workexp-modal");
-  initHeaderModalTrigger(".cert-btn", "cert-modal");
-  initHeaderModalTrigger(".about-btn", "about-modal");
-    initContactWidget();
+  initContactWidget();
+  initCertLightbox();
+}
+
+async function pjaxNavigate(url, addToHistory) {
+  const container = document.getElementById(PJAX_CONTENT_ID);
+  if (!container || pjaxBusy) {
+    if (!container) window.location.href = url;
+    return;
+  }
+  pjaxBusy = true;
+  container.classList.add("pjax-loading");
+
+  try {
+    const res = await fetch(url, { credentials: "same-origin" });
+    if (!res.ok) throw new Error("Bad response: " + res.status);
+    const html = await res.text();
+    const newDoc = new DOMParser().parseFromString(html, "text/html");
+    const newContainer = newDoc.getElementById(PJAX_CONTENT_ID);
+
+    if (!newContainer) {
+      // Destination page hasn't been converted to #page-content yet —
+      // fall back to a real navigation instead of showing nothing.
+      window.location.href = url;
+      return;
+    }
+
+    container.replaceWith(newContainer);
+
+    // Browsers don't execute <script> tags that arrive via a DOM swap like
+    // this — only ones parsed by the browser itself. Some pages still have
+    // their own small inline <script> blocks (e.g. page-specific modals),
+    // so re-create each one to force it to actually run.
+    newContainer.querySelectorAll("script").forEach((oldScript) => {
+      const newScript = document.createElement("script");
+      Array.from(oldScript.attributes).forEach((attr) =>
+        newScript.setAttribute(attr.name, attr.value)
+      );
+      newScript.textContent = oldScript.textContent;
+      oldScript.replaceWith(newScript);
+    });
+
+    document.title = newDoc.title;
+    pjaxSetActivePill(url);
+    pjaxSyncMorePillsRow();
+    window.scrollTo(0, 0);
+    if (addToHistory) history.pushState({ pjax: true }, "", url);
+    initPageContent(newContainer);
+  } catch (err) {
+    window.location.href = url;
+  } finally {
+    pjaxBusy = false;
+  }
+}
+
+function initPjaxNavigation() {
+  if (!document.getElementById(PJAX_CONTENT_ID)) return; // this page isn't converted
+
+  document.addEventListener("click", (e) => {
+    if (e.defaultPrevented || e.button !== 0) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const link = e.target.closest("a");
+    if (!link || !pjaxIsEligible(link)) return;
+
+    const href = link.getAttribute("href");
+    const destUrl = new URL(href, window.location.href).href;
+    e.preventDefault();
+    if (destUrl === window.location.href) return; // already here
+    pjaxNavigate(href, true);
+  });
+
+  window.addEventListener("popstate", () => {
+    pjaxNavigate(window.location.href, false);
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initPageContent(document);
+  initHeaderModalTriggers();
+  initWvNoteModal();
+  initMorePillsToggle();
+  initPjaxNavigation();
 });
