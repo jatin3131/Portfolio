@@ -324,7 +324,7 @@ button { font-family: inherit; }
 .brand-name {
   font-family: 'times now roman', bold;
   font-style: bold;
-  font-weight: 600z0;
+  font-weight: 600;
   font-size: 59px;
 
   padding: 0px;
@@ -341,22 +341,22 @@ button { font-family: inherit; }
 }
 
 .explore-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-style: underline;
-    background: rgba(255, 255, 255, 0.92);
-    color: var(--text);
-    border: 1.5px solid var(--border);
-    padding: 14px 24px;
-    border-radius: 9px;
-    font-family: 'Sora', sans-serif;
-    font-weight: 600;
-    font-size: 14.5px;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.25s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-    position: relative;
-    overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: underline;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  padding: 14px 24px;
+  border-radius: 9px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 14.5px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.25s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 @media (max-width: 737px) {
@@ -437,7 +437,6 @@ button { font-family: inherit; }
   top: 28px;
   right: 40px;
   z-index: 30;
-  ;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -558,7 +557,7 @@ button { font-family: inherit; }
   padding: 11px 20px;
   border-radius: 999px;
   border: 1.5px solid var(--border);
-  background: rgba(233, 129, 10, 0.92);;
+  background: #fff;
   color: #2B2430;
   cursor: pointer;
   display: inline-block;
@@ -704,7 +703,7 @@ button { font-family: inherit; }
   gap: 9px;
   max-height: 0;
   opacity: 0;
-  overflow: ;
+  overflow: hidden;
   margin-top: 0;
   transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.4s ease;
 }
@@ -714,8 +713,8 @@ button { font-family: inherit; }
   margin-top: 9px;
   padding-bottom: 14px; /* NOT transitioned on purpose — see JS note below */
 }
-  /* max-height is now set inline by JS to the real content height */
-}
+/* max-height is now set inline by JS to the real content height */
+
 /* jnbCW — Responsive breakpoints */
 
 @media (max-width: 750px) {
@@ -864,7 +863,7 @@ button { font-family: inherit; }
   border-radius: 24px;
   overflow: hidden;
   position: relative;
-  background: var(--accent-);
+  background: var(--accent-soft);
   box-shadow: 0 30px 60px -32px rgba(60, 60, 65, 0.22);
   transform: scale(0.82);
   opacity: 0.45;
@@ -969,7 +968,7 @@ button { font-family: inherit; }
   height: 48px;
   border-radius: 50%;
   border: none;
-  background: rgba(233, 129, 10, 0.92);
+  background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -979,7 +978,7 @@ button { font-family: inherit; }
   transition: background 0.3s ease, transform 0.25s ease;
   z-index: 5;
 }
-.hero-arrow:hover { background: #b93fe9; transform: translateY(-50%) scale(1.08); }
+.hero-arrow:hover { background: var(--accent-soft); transform: translateY(-50%) scale(1.08); }
 .hero-arrow-left { left: 16px; }
 .hero-arrow-right { right: 16px; }
 
@@ -1211,9 +1210,6 @@ button { font-family: inherit; }
   width: fit-content;
   white-space: nowrap;
   z-index: 5;
-
-    width: fit-content;
-  white-space: nowrap;
 }
 @keyframes pop {
   0%, 85%, 100% { transform: scale(1); }
