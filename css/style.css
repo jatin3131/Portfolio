@@ -324,7 +324,7 @@ button { font-family: inherit; }
 .brand-name {
   font-family: 'times now roman', bold;
   font-style: bold;
-  font-weight: 600z0;
+  font-weight: 600;
   font-size: 59px;
 
   padding: 0px;
@@ -334,7 +334,7 @@ button { font-family: inherit; }
 .brand-role {
   font-family: 'Sora', sans-serif;
   font-size: 13.5px;
-  visibility: hidden;
+  /* visibility: hidden; */
 
   color:#1578f9;
   letter-spacing: 0.05em;
@@ -344,9 +344,8 @@ button { font-family: inherit; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-style: underline;
-  
-  background: rgba(255, 255, 255, 0.92);;
+  text-decoration: underline;
+  background: rgba(255, 255, 255, 0.92);
   color: var(--text);
   border: 1.5px solid var(--border);
   padding: 14px 24px;
@@ -438,7 +437,6 @@ button { font-family: inherit; }
   top: 28px;
   right: 40px;
   z-index: 30;
-  ;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -559,7 +557,7 @@ button { font-family: inherit; }
   padding: 11px 20px;
   border-radius: 999px;
   border: 1.5px solid var(--border);
-  background: rgba(233, 129, 10, 0.92);;
+  background: #fff;
   color: #2B2430;
   cursor: pointer;
   display: inline-block;
@@ -623,12 +621,13 @@ button { font-family: inherit; }
   .pill {
      padding: 2px 0px;
     font-size: 7px;
-    margin-top: -43px;
+  
+
     text-align: center;
     padding: 2px 7px;
 
     margin-right: 11px;
-    margin-bottom: 19px;
+    margin-bottom:44px;
   }
 }
 @media (max-width: 406px) {
@@ -641,6 +640,9 @@ button { font-family: inherit; }
     margin-bottom: 19px;
   }
 }
+
+
+
 .pill:hover {
   background: #FF9376;              /* var(--accent) coral */
   color: #ffffff;                   /* white text — visible on coral */
@@ -705,7 +707,7 @@ button { font-family: inherit; }
   gap: 9px;
   max-height: 0;
   opacity: 0;
-  overflow: ;
+  overflow: hidden;
   margin-top: 0;
   transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.4s ease;
 }
@@ -715,8 +717,8 @@ button { font-family: inherit; }
   margin-top: 9px;
   padding-bottom: 14px; /* NOT transitioned on purpose — see JS note below */
 }
-  /* max-height is now set inline by JS to the real content height */
-}
+/* max-height is now set inline by JS to the real content height */
+
 /* jnbCW — Responsive breakpoints */
 
 @media (max-width: 750px) {
@@ -865,7 +867,7 @@ button { font-family: inherit; }
   border-radius: 24px;
   overflow: hidden;
   position: relative;
-  background: var(--accent-);
+  background: var(--accent-soft);
   box-shadow: 0 30px 60px -32px rgba(60, 60, 65, 0.22);
   transform: scale(0.82);
   opacity: 0.45;
@@ -970,7 +972,7 @@ button { font-family: inherit; }
   height: 48px;
   border-radius: 50%;
   border: none;
-  background: rgba(233, 129, 10, 0.92);
+  background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -980,7 +982,7 @@ button { font-family: inherit; }
   transition: background 0.3s ease, transform 0.25s ease;
   z-index: 5;
 }
-.hero-arrow:hover { background: #b93fe9; transform: translateY(-50%) scale(1.08); }
+.hero-arrow:hover { background: var(--accent-soft); transform: translateY(-50%) scale(1.08); }
 .hero-arrow-left { left: 16px; }
 .hero-arrow-right { right: 16px; }
 
@@ -1212,9 +1214,6 @@ button { font-family: inherit; }
   width: fit-content;
   white-space: nowrap;
   z-index: 5;
-
-    width: fit-content;
-  white-space: nowrap;
 }
 @keyframes pop {
   0%, 85%, 100% { transform: scale(1); }
@@ -1535,6 +1534,25 @@ button { font-family: inherit; }
 .video-card.video-cinematic:hover .video-center-btn {
   opacity: 1;
   transform: translate(-50%, -50%) scale(1);
+}
+
+@media (max-width: 534px) {
+  .pills-row {
+    padding-left: 26px;
+    padding-top: 6px;
+  }
+}
+@media (max-width: 500px) {
+  .pills-row {
+    padding-left: 26px;
+    padding-top: 6px;
+  }
+}
+@media (max-width: 450px) {
+  .pills-row {
+    padding-left: 26px;
+    padding-top: 6px;
+  }
 }
 .video-center-btn:hover { background: #fff; transform: translate(-50%, -50%) scale(1.08); }
 .video-prompt-btn {
