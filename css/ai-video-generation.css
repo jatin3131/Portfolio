@@ -1,0 +1,1108 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #000000;
+  --accent: #FF9376;       /* warm coral - primary */
+  --accent-2: #B7A6FF;     /* soft lavender - secondary */
+  --accent-3: #9FD8C4;     /* soft mint - tertiary */
+  --accent-soft: #FFE9DE;
+  --text: #2B2430;
+  --text-soft: #8B8290;
+  --border: #E3E4E8;
+  --hover: rgba(255, 147, 118, 0.10);
+  --radius-lg: 32px;
+  --radius-md: 22px;
+
+  /* Layout tokens for keeping the content panel and the fixed right-side
+     ambient video panel as two separate, non-colliding regions once the
+     window is wide enough for the video to show at full strength. */
+  --content-max-width: 1240px;
+  --ambient-frame-width: 38vw;   /* matches .ambient-video-frame's base width */
+  --content-video-gutter: 64px;  /* breathing room kept between the grid and the video */
+
+  /* Ambient background tokens — tune these to taste.
+     Lower blur / higher saturate+contrast = harder, punchier glow.
+     Higher blur / lower saturate = softer, dreamier glow. */
+  --ambient-1: #000000;
+  --ambient-2: #000000;
+  --ambient-3: #000000;
+  --ambient-blur: 46px;
+  --ambient-saturate: 1.7;
+  --ambient-contrast: 1.15;
+  --ambient-brightness: 0.9;
+  --ambient-scale: 1.2;
+  --ambient-opacity: 1;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #000000;
+  color: var(--text);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; }
+
+.app-inner {
+  position: relative;
+  z-index: 2;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 0 48px;
+}
+
+/* ============================================================
+   AMBIENT REEL BACKGROUND
+   A vertical reel video sits fixed on the right edge of the
+   viewport. Behind everything, a soft full-bleed gradient tracks
+   the video's dominant colours in real time (see js/ambient-bg.js).
+   Until a real <source> is added to #ambientVideo, a placeholder
+   card is shown and the gradient slowly drifts through the site's
+   own accent palette instead of sampled colour.
+   ============================================================ */
+
+.ambient-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* fallback wash — only ever visible before the echo video has data,
+   or if no video source has been added yet */
+.ambient-bg::before {
+  content: "";
+  position: absolute;
+  inset: -10%;
+  background: linear-gradient(180deg, var(--ambient-1) 0%, var(--ambient-2) 55%, var(--ambient-3) 100%);
+  z-index: 0;
+}
+
+/* the real Ambilight layer: a second, muted copy of the same video,
+   scaled up and blurred, sitting full-bleed behind the whole page.
+   Because it's the actual video (not a sampled/averaged colour on a
+   timer), the glow tracks every frame with zero lag. Tune the
+   --ambient-* variables above for softer/harder results. */
+.ambient-echo-video {
+  position: absolute;
+  inset: -15%;
+  width: 130%;
+  height: 130%;
+  object-fit: cover;
+  object-position: center right;
+  filter:
+    blur(var(--ambient-blur))
+    saturate(var(--ambient-saturate))
+    contrast(var(--ambient-contrast))
+    brightness(var(--ambient-brightness));
+  transform: scale(var(--ambient-scale));
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 1;
+}
+.ambient-echo-video.ready { opacity: var(--ambient-opacity); }
+
+/* fine grain, matches the site's original textured backdrop */
+.ambient-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background:
+    repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0px, rgba(255,255,255,.05) 2px, transparent 2px, transparent 80px),
+    repeating-linear-gradient(-45deg, rgba(255,255,255,.04) 0px, rgba(255,255,255,.04) 2px, transparent 2px, transparent 80px);
+}
+
+/* the video panel — a plain full-height slab on the right edge of the
+   screen, no frame/rounding/shadow. The video is not landscape, so it
+   fills this panel via object-fit: cover (cropping left/right of the
+   source as needed, never letterboxing). */
+.ambient-video-frame {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--ambient-frame-width);
+  overflow: hidden;
+  z-index: 1;
+}
+
+.ambient-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* soft edge so the video blends into the ambient wash instead of
+   cutting off with a hard vertical line */
+.ambient-video-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 18%);
+  pointer-events: none;
+}
+
+/* Placeholder shown until a real <source> is added to #ambientVideo.
+   Toggle is handled by js/ambient-bg.js (adds .has-video to the frame
+   once the element actually starts loading a real source). */
+.ambient-video-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,0.06) 0px, rgba(255,255,255,0.06) 10px, transparent 10px, transparent 20px),
+    rgba(255, 255, 255, 0.05);
+}
+.ambient-video-placeholder svg { opacity: 0.85; }
+.ambient-video-placeholder-title {
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 13.5px;
+  letter-spacing: 0.01em;
+}
+.ambient-video-placeholder-sub {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 240px;
+}
+
+.ambient-video-frame.has-video .ambient-video-placeholder {
+  display: none;
+}
+
+@media (max-width: 1239px) {
+  .ambient-video-frame { width: 42vw; }
+}
+
+@media (max-width: 900px) {
+  /* keep the ambient colour wash, but fade the video down — a full
+     right-half video fighting the content on small screens does more
+     harm than good */
+  .ambient-video-frame { width: 50vw; opacity: 0.4; }
+}
+
+@media (max-width: 600px) {
+  .ambient-video-frame { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-echo-video { transition: none; }
+}
+
+/* ---------- Top bar: white finish over the ambient colour ---------- */
+.topbar {
+  position: relative;
+  width: 100vw;
+  height: 185px;
+  margin-left: calc(50% - 50vw);
+  background: #f9f9f9;
+  padding-top: 1px;
+  border-bottom-left-radius: 46px;
+  border-bottom-right-radius: 46px;
+  box-shadow: 0 40px 70px -35px rgba(20, 10, 45, 0.45);
+  z-index: 20;
+}
+
+@media (max-width: 739px) {
+  .topbar { height: 132px; overflow: hidden; }
+}
+
+.topbar.topbar-expanded { height: auto; overflow: visible; }
+
+@media (max-width: 739px) {
+  .topbar.topbar-expanded { height: auto; overflow: visible; }
+}
+
+.topbar-inner { padding-bottom: 0px; }
+
+/* ---------- Header ---------- */
+.site-header { padding: 10px 0 30px; position: relative; }
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+@media (max-width: 1239px) {
+  .brand { visibility: hidden; }
+}
+.brand-name {
+  font-family: 'times now roman', bold;
+  font-style: bold;
+  font-weight: 600;
+  font-size: 59px;
+  padding: 0px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.brand-role {
+  font-family: 'Sora', sans-serif;
+  font-size: 13.5px;
+  color: #1578f9;
+  letter-spacing: 0.05em;
+}
+
+.explore-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: underline;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  padding: 14px 24px;
+  border-radius: 9px;
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 14.5px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.25s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 737px) { .explore-btn { padding: 8px 16px; font-size: 12px; position: relative; z-index: 99999; } }
+@media (max-width: 610px) { .explore-btn { padding: 5px 13px; font-size: 9px; position: relative; z-index: 99999; } }
+@media (max-width: 506px) { .explore-btn { padding: 3px 10px; font-size: 7px; position: relative; z-index: 99999; margin-right: 9px; } }
+@media (max-width: 470px) { .explore-btn { padding: 3px 7px; font-size: 7px; position: relative; z-index: 99999; margin-right: 9px; } }
+@media (max-width: 432px) { .explore-btn { padding: 2px 7px; font-size: 5px; position: relative; z-index: 99999; margin-right: 9px; } }
+@media (max-width: 490px) { .explore-btn { padding: 1px 6px; font-size: 5px; position: relative; z-index: 99999; margin-right: 9px; } }
+
+.explore-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 26px -12px rgba(255, 147, 118, 0.5);
+}
+.explore-btn svg { flex-shrink: 0; }
+
+.header-actions {
+  position: absolute;
+  top: 28px;
+  right: 40px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: calc(100vw - 80px);
+}
+
+@media (max-width: 1239px) {
+  .header-actions { position: static; justify-content: center; gap: 5px; height: 00; }
+}
+
+/* ---------- "My Projects" label above the category pills ---------- */
+.pills-heading-row { position: relative; z-index: 2; }
+
+.pills-heading {
+  position: absolute;
+  top: -20px;
+  left: 2px;
+  font-family: 'Fraunces', serif;
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #2B2430;
+  white-space: nowrap;
+  z-index: 2;
+}
+.pills-heading::after {
+  content: "";
+  display: block;
+  width: 38px;
+  height: 3px;
+  margin-top: -30px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+@media (max-width: 1340px) { .pills-heading { top: -16px; font-size: 12px; } }
+@media (max-width: 739px)  { .pills-heading { top: -14px; font-size: 11px; } }
+@media (max-width: 599px)  { .pills-heading { top: -12px; font-size: 10px; } }
+@media (max-width: 492px)  { .pills-heading { top: -10px; font-size: 8.5px; } }
+@media (max-width: 455px)  { .pills-heading { top: -9px; font-size: 8px; } }
+
+.about-btn.pulse, .cert-btn, .edu-btn, .workexp-btn { animation: aboutPulse 2.8s ease-in-out infinite; }
+@keyframes aboutPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 10px 20px -14px rgba(255, 147, 118, 0.3); }
+  50% { transform: scale(1.04); box-shadow: 0 14px 28px -10px rgba(255, 147, 118, 0.55); }
+}
+
+/* ---------- Pills ---------- */
+.pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding-bottom: 8px;
+  position: relative;
+}
+.pills-row::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background: #e2e2e4;
+  border-radius: 0 0 46px 46px;
+  z-index: 0;
+  pointer-events: none;
+}
+@media (max-width: 739px) { .pills-row::before { border-radius: 0 0 32px 32px; } }
+
+.pill {
+  font-family: 'Sora', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  top: 9px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+  color: #2B2430;
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  z-index: 1;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease, border-color 0.25s ease, box-shadow 0.3s ease;
+}
+
+@media (max-width: 739px) { .pill { padding: 8px 16px; font-size: 12px; margin-top: -35px; } }
+@media (max-width: 703px) { .pill { padding: 8px 16px; font-size: 12px; margin-top: -35px; } }
+@media (max-width: 599px) { .pill { padding: 6px 10px; margin-top: -35px; font-size: 10px; margin-right: 2px; margin-bottom: 19px; } }
+@media (max-width: 511px) { .pill { padding: 3px 4px; font-size: 10px; margin-top: -35px; text-align: center; margin-right: 11px; margin-bottom: 19px; } }
+@media (max-width: 492px) { .pill { padding: 2px 7px; font-size: 8px; margin-top: -43px; text-align: center; margin-right: 11px; margin-bottom: 19px; } }
+@media (max-width: 455px) { .pill { padding: 2px 7px; font-size: 7px; text-align: center; margin-right: 11px; margin-bottom: 44px; } }
+@media (max-width: 406px) { .pill { padding: 2px 7px; font-size: 7px; margin-top: -43px; text-align: center; margin-right: 11px; margin-bottom: 19px; } }
+
+.pill:hover {
+  background: #FF9376;
+  color: #ffffff;
+  border-color: #FF9376;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px -12px rgba(255, 147, 118, 0.35);
+}
+.pill-active {
+  background: #FF9376;
+  color: #ffffff;
+  border-color: #FF9376;
+  box-shadow: 0 10px 22px -10px rgba(255, 147, 118, 0.5);
+}
+.pill-active:hover {
+  background: #FF7A55;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px -12px rgba(255, 147, 118, 0.55);
+}
+
+.tabs-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding-bottom: 36px; }
+.video-tab { text-align: center; line-height: 1.35; padding-top: 11px; padding-bottom: 11px; }
+.tab-sub { display: block; font-size: 11px; font-weight: 500; opacity: 0.85; margin-top: 1px; }
+
+/* ---------- More Projects toggle + expandable row ---------- */
+.more-pill { display: inline-flex; align-items: center; gap: 6px; border: none; }
+.more-pill-arrow { transition: transform 0.3s ease; flex-shrink: 0; }
+.more-pill.pill-active .more-pill-arrow { transform: rotate(180deg); }
+
+.pills-extra-row {
+  flex-basis: 100%;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  margin-top: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease, margin-top 0.4s ease;
+}
+.pills-extra-row.open { opacity: 1; margin-top: 9px; padding-bottom: 14px; }
+
+@media (max-width: 1340px) { .pills-row { border-top: 2px solid #000000; padding-top: 18px; margin-top: 6px; } }
+@media (max-width: 735px) {
+  .pills-row { border-top: 2px solid #000000; margin-top: -19px; top: -19px; }
+  .pill { margin-top: -8px; }
+}
+@media (max-width: 534px) { .pills-row { padding-left: 26px; padding-top: 6px; } }
+@media (max-width: 500px) { .pills-row { padding-left: 26px; padding-top: 6px; } }
+@media (max-width: 450px) { .pills-row { padding-left: 26px; padding-top: 6px; } }
+
+/* ---------- Ripple ---------- */
+.ripple-host { position: relative; overflow: hidden; }
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(0);
+  animation: rippleAnim 650ms ease-out;
+  pointer-events: none;
+}
+.pill .ripple, .link-btn .ripple { background: rgba(255, 147, 118, 0.2); }
+@keyframes rippleAnim { to { transform: scale(1); opacity: 0; } }
+
+/* ---------- jnbCW Contact Widget ---------- */
+.jnbCW-container {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 62px;
+  height: 62px;
+  border-radius: 31px;
+  background: linear-gradient(135deg, #8a6cff, #5b3df0);
+  box-shadow: 0 10px 28px -6px rgba(91, 61, 240, 0.55);
+  overflow: hidden;
+  z-index: 999999;
+  cursor: pointer;
+  transition:
+    width 0.45s cubic-bezier(.65,0,.35,1),
+    height 0.45s cubic-bezier(.65,0,.35,1) 0.45s,
+    border-radius 0.4s ease;
+}
+.jnbCW-container.jnbCW-open {
+  width: 320px;
+  height: 380px;
+  border-radius: 22px;
+  cursor: default;
+  box-shadow: 0 20px 50px -10px rgba(20, 15, 50, 0.4);
+}
+@media (max-width: 420px) {
+  .jnbCW-container.jnbCW-open { width: calc(100vw - 32px); right: 16px; }
+}
+.jnbCW-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(138, 108, 255, 0.55);
+  animation: jnbCW-pulse 10s ease-out infinite;
+  z-index: -1;
+  pointer-events: none;
+}
+.jnbCW-container.jnbCW-open::before { display: none; }
+@keyframes jnbCW-pulse {
+  0%    { transform: scale(1);    opacity: 0.65; }
+  9%    { transform: scale(1.65); opacity: 0; }
+  100%  { transform: scale(1);    opacity: 0; }
+}
+.jnbCW-toggle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.jnbCW-toggle:hover { transform: scale(1.08); }
+.jnbCW-container.jnbCW-open .jnbCW-toggle { opacity: 0; pointer-events: none; }
+.jnbCW-icon { display: block; }
+.jnbCW-content {
+  position: absolute;
+  inset: 0;
+  padding: 22px 20px 20px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  color: #fff;
+}
+.jnbCW-container.jnbCW-open .jnbCW-content {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.4s ease 0.75s;
+}
+.jnbCW-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.jnbCW-close:hover { background: rgba(255,255,255,0.3); transform: rotate(90deg); }
+.jnbCW-heading { margin: 6px 0 4px; font-size: 22px; font-weight: 700; }
+.jnbCW-sub { margin: 0 0 22px; font-size: 13.5px; color: rgba(255,255,255,0.75); }
+.jnbCW-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  text-decoration: none;
+  color: #fff;
+  margin-bottom: 12px;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.jnbCW-item:hover { background: rgba(255,255,255,0.18); transform: translateX(2px); }
+.jnbCW-item-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.jnbCW-item-text { display: flex; flex-direction: column; min-width: 0; }
+.jnbCW-item-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.65); }
+.jnbCW-item-value { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 750px) {
+  .jnbCW-container { right: 20px; bottom: 20px; width: 58px; height: 58px; }
+  .jnbCW-container.jnbCW-open { width: 300px; height: 360px; }
+}
+@media (max-width: 700px) { .jnbCW-container.jnbCW-open { width: 280px; height: 350px; } }
+@media (max-width: 600px) {
+  .jnbCW-container { right: 18px; bottom: 18px; width: 54px; height: 54px; }
+  .jnbCW-container.jnbCW-open { width: calc(100vw - 36px); height: 340px; }
+  .jnbCW-icon { width: 22px; height: 22px; }
+}
+@media (max-width: 540px) {
+  .jnbCW-container.jnbCW-open { height: 330px; }
+  .jnbCW-heading { font-size: 20px; }
+  .jnbCW-sub { font-size: 13px; margin-bottom: 18px; }
+}
+@media (max-width: 500px) {
+  .jnbCW-container { right: 16px; bottom: 16px; width: 52px; height: 52px; }
+  .jnbCW-container.jnbCW-open { width: calc(100vw - 32px); height: 320px; border-radius: 18px; }
+  .jnbCW-content { padding: 18px 16px 16px; }
+}
+@media (max-width: 470px) {
+  .jnbCW-item { padding: 10px 10px; margin-bottom: 10px; }
+  .jnbCW-item-icon { width: 30px; height: 30px; }
+  .jnbCW-item-value { font-size: 13px; }
+}
+@media (max-width: 450px) {
+  .jnbCW-container { right: 14px; bottom: 14px; width: 50px; height: 50px; }
+  .jnbCW-container.jnbCW-open { width: calc(100vw - 28px); right: 14px; height: 310px; }
+  .jnbCW-icon { width: 20px; height: 20px; }
+}
+@media (max-width: 400px) {
+  .jnbCW-container.jnbCW-open { width: calc(100vw - 24px); right: 12px; height: 300px; }
+  .jnbCW-heading { font-size: 18px; }
+  .jnbCW-sub { font-size: 12px; margin-bottom: 16px; }
+  .jnbCW-close { width: 26px; height: 26px; top: 12px; right: 12px; }
+}
+@media (max-width: 300px) {
+  .jnbCW-container { right: 10px; bottom: 10px; width: 46px; height: 46px; }
+  .jnbCW-container.jnbCW-open { width: calc(100vw - 20px); right: 10px; height: 290px; padding: 0; }
+  .jnbCW-content { padding: 14px 12px 12px; }
+  .jnbCW-heading { font-size: 16px; }
+  .jnbCW-item-label { font-size: 10px; }
+  .jnbCW-item-value { font-size: 12px; }
+}
+
+/* ---------- Page frame ---------- */
+.main-area { min-height: 60vh; padding-bottom: 100px; }
+
+/* ---------- Content shell vs. ambient video panel ----------
+   Below the "maximized" breakpoint (1239px and down) the ambient
+   video panel already shrinks/fades on its own (see the
+   .ambient-video-frame media queries above), so the grid is allowed
+   to sit under it there — no change needed for that range.
+   From 1240px up, the video panel is at full strength (38vw, full
+   opacity), so here we treat it as its own panel: the content shell
+   keeps the same left edge as the (unchanged) topbar, but its right
+   edge is capped so it always stops --content-video-gutter before
+   the video panel starts. Content and video become two panels that
+   never draw on top of one another. */
+@media (min-width: 1240px) {
+  .app-inner.content-shell {
+    margin-left: max(0px, calc((100vw - var(--content-max-width)) / 2));
+    margin-right: 0;
+    max-width: min(
+      var(--content-max-width),
+      calc(100vw - var(--ambient-frame-width) - var(--content-video-gutter) - max(0px, calc((100vw - var(--content-max-width)) / 2)))
+    );
+  }
+}
+
+.eyebrow {
+  display: inline-block;
+  font-family: 'Sora', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(43, 36, 48, 0.28);
+  padding: 7px 14px 7px 20px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+  position: relative;
+}
+.eyebrow::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 9px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+}
+.detail-body .eyebrow, .about-text .eyebrow {
+  color: var(--accent);
+  background: none;
+  padding-left: 18px;
+}
+.detail-body .eyebrow::before, .about-text .eyebrow::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+.category-heading { padding: 0px 0 15px; }
+.category-title {
+  font-family: 'Fraunces', serif;
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 0px 0 0;
+  position: relative;
+  display: inline-block;
+  color: #fff;
+  text-shadow: 0 4px 24px rgba(20, 10, 45, 0.35);
+}
+.category-title::after {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 4px;
+  margin-bottom: 0%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+}
+
+/* ---------- AI Video Generation grid ---------- */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 26px;
+}
+/* Two distinct grids — Basic (9:16 clips) and Cinematic (16:9 clips) get
+   their own column rules instead of sharing one, so each tab can be tuned
+   independently. Below 1240px both stay responsive/auto-fill as before. */
+.video-grid.grid-basic { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.video-grid.grid-cinematic { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+.video-card {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  background: var(--accent-soft);
+  cursor: pointer;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease, border-color 0.3s ease;
+  animation: fadeSlideUp 0.6s ease both;
+}
+.video-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 26px 48px -26px rgba(60, 60, 65, 0.22);
+  border-color: var(--accent);
+}
+.video-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.video-card:hover video { transform: scale(1.04); }
+
+.video-play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(43, 36, 48, 0.10);
+  opacity: 1;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.video-card:hover .video-play-overlay { opacity: 0; }
+.video-play-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  box-shadow: 0 10px 22px -8px rgba(0,0,0,0.22);
+}
+.video-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 22px 16px 14px;
+  background: linear-gradient(to top, rgba(255,255,255,0.94), rgba(255,255,255,0));
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+.video-card.video-cinematic { aspect-ratio: 16 / 9; }
+.video-card.video-cinematic .video-play-overlay { display: none; }
+
+/* Once the window is maximized (video panel at full strength), lock the
+   two grids to fixed column counts instead of auto-fill: 2-up for
+   Cinematic, 3-up for Basic. Below 1240px they fall back to the
+   auto-fill rules above. */
+@media (min-width: 1240px) {
+  .video-grid.grid-cinematic { grid-template-columns: repeat(2, 1fr); }
+  .video-grid.grid-basic { grid-template-columns: repeat(3, 1fr); }
+}
+
+.video-fullscreen-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transform: scale(1);
+  transition: background 0.3s ease, transform 0.25s ease;
+  cursor: pointer;
+  z-index: 6;
+  box-shadow: 0 8px 16px -8px rgba(0,0,0,0.22);
+}
+.video-fullscreen-btn:hover { background: #fff; transform: scale(1.1); }
+
+.video-center-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.25s ease, background 0.3s ease;
+  cursor: pointer;
+  z-index: 6;
+  box-shadow: 0 12px 26px -8px rgba(0,0,0,0.3);
+}
+.video-card.video-cinematic:hover .video-center-btn { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.video-center-btn:hover { background: #fff; transform: translate(-50%, -50%) scale(1.08); }
+
+.video-prompt-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.3s ease, transform 0.25s ease, background 0.3s ease;
+  cursor: pointer;
+  z-index: 6;
+  box-shadow: 0 8px 16px -8px rgba(0,0,0,0.22);
+}
+.video-card:hover .video-prompt-btn { opacity: 1; transform: scale(1); }
+.video-prompt-btn:hover { background: #fff; transform: scale(1.1); }
+
+/* ---------- Shared prompt modal image ---------- */
+.prompt-modal-image { width: 100%; height: 420px; overflow: hidden; background: var(--accent-soft); }
+.prompt-modal-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.detail-inline-img {
+  display: block;
+  width: 80%;
+  max-width: 700px;
+  margin: 28px auto;
+  border-radius: 18px;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 16px 32px -12px rgba(60, 60, 65, 0.18);
+  transition: transform .35s ease, box-shadow .35s ease;
+}
+.detail-inline-img:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 22px 42px -12px rgba(60, 60, 65, 0.24); }
+
+/* ---------- Detail modal (shared shell) ---------- */
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 32, 38, 0.45);
+  backdrop-filter: blur(3px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  z-index: 50;
+  animation: fadeIn 0.3s ease;
+}
+.detail-overlay.open { display: flex; }
+.detail-panel {
+  background: #F3F4F6;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  max-width: 900px;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 50px 100px -30px rgba(20, 20, 25, 0.28);
+  animation: fadeSlideUp 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+.detail-close {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.95);
+  cursor: pointer;
+  font-size: 15px;
+  z-index: 5;
+  box-shadow: 0 8px 18px -6px rgba(0,0,0,0.2);
+  transition: transform 0.25s ease, background 0.3s ease;
+}
+.detail-close:hover { transform: rotate(90deg); background: var(--accent-soft); }
+
+.detail-slider { position: relative; width: 100%; height: 460px; overflow: hidden; background: var(--accent-soft); }
+.detail-slider-track { display: flex; height: 100%; }
+.detail-slider-track img { width: 100%; height: 100%; object-fit: cover; display: block; flex: 0 0 100%; }
+
+.detail-body { padding: 40px 44px 52px; }
+.detail-title { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 600; margin: 6px 0 18px; color: var(--text); }
+.detail-desc { font-size: 16px; font-weight: 400; line-height: 1.85; color: #4d4650; margin: 0 0 16px; }
+
+.detail-extra { display: none; padding: 0 44px 44px; }
+.detail-extra img { width: 100%; border-radius: 18px; display: block; border: 1.5px solid var(--border); transform: scale(1); }
+.detail-extra img.pop-anim { animation: popEffect 0.65s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes popEffect {
+  0%   { transform: scale(0.86); opacity: 0.55; }
+  55%  { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ---------- About Me modal ---------- */
+.about-panel { max-width: 960px; }
+.about-content { display: flex; align-items: stretch; }
+.about-text { flex: 1; padding: 48px 44px; min-width: 0; }
+.about-text .eyebrow { margin-bottom: 14px; }
+.about-name { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 600; margin: 0 0 18px; color: var(--text); }
+.about-text .detail-desc:last-child { margin-bottom: 0; }
+.about-skills { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 0; padding: 0; list-style: none; }
+.about-skills li {
+  font-family: 'Sora', sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  background: #fff;
+}
+.about-image { flex: 0 0 300px; position: relative; aspect-ratio: 9 / 13; overflow: hidden; }
+.about-image img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+
+@media (max-width: 762px) {
+  .about-image img { flex: 0 0 20px; width: 34%; aspect-ratio: 1 / 10; bottom: 0px; }
+}
+@media (max-width: 760px) {
+  .about-content { flex-direction: column-reverse; }
+  .about-image { flex: 0 0 260px; width: 100%; aspect-ratio: 16 / 10; }
+  .about-text { padding: 36px 26px; }
+}
+
+/* ---------- Work Experience modal ---------- */
+.exp-panel { max-width: 780px; }
+.exp-panel .detail-body { padding: 48px 44px 52px; }
+.exp-panel .about-name { margin-bottom: 14px; }
+.exp-panel > .detail-body > .detail-desc { margin-bottom: 8px; }
+
+.exp-entry {
+  padding: 34px 0 34px 22px;
+  border-top: 1px solid var(--border);
+  border-left: 2px solid transparent;
+  border-image: linear-gradient(180deg, var(--accent), var(--accent-2)) 1;
+  border-image-slice: 1;
+  position: relative;
+}
+.exp-entry:first-of-type { border-top: none; padding-top: 28px; }
+.exp-heading { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600; margin: 0 0 12px; letter-spacing: -0.01em; color: var(--text); }
+.exp-desc { font-size: 14.5px; line-height: 1.75; color: var(--text-soft); margin: 0 0 20px; }
+.exp-image { border-radius: 16px; overflow: hidden; border: 1.5px solid var(--border); }
+.exp-image img { width: 100%; height: 280px; object-fit: cover; display: block; }
+
+@media (max-width: 700px) {
+  .exp-panel .detail-body { padding: 34px 24px 40px; }
+  .exp-image img { height: 200px; }
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  border-top: 1px solid rgba(255,255,255,0.25);
+  padding: 28px 0 60px;
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  position: relative;
+  z-index: 2;
+}
+.footer-dot { color: rgba(255,255,255,0.5); }
+
+/* ---------- Motion helpers ---------- */
+.fade-slide-in { animation: fadeSlideUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+  .app-inner { padding: 0 24px; }
+  .header-actions { position: static; justify-content: flex-start; max-width: 100%; padding: 20px 24px 0; }
+  .category-title { font-size: 32px; }
+  .brand-name { font-size: 25px; }
+  .detail-slider { height: 280px; }
+  .prompt-modal-image { height: 260px; }
+  .detail-body { padding: 28px 26px 36px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+/* ============================================================
+   TOPBAR AUTO-MINIMIZE (AI Video Generation page only)
+   Everything below is scoped to classes/IDs that only JS ever
+   adds on this specific page (see js/topbar-minimize.js), so it
+   has zero effect on the shared .topbar used by other pages.
+   ============================================================ */
+
+/* Edge handle: hidden by default (0 height impact) until JS marks
+   the topbar as "minimizable" — i.e. only ever on this page. */
+.topbar-edge-toggle {
+  display: none;
+  width: 100%;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.topbar-edge-toggle:hover,
+.topbar-edge-toggle:focus-visible { color: var(--text); }
+
+.topbar-edge-arrow { flex-shrink: 0; transition: transform 0.3s ease; }
+
+.topbar-minimizable .topbar-edge-toggle { display: flex; }
+
+/* Λ when open (click/drag up to collapse), ⌄ when collapsed
+   (click/drag down to open). */
+.topbar-minimizable:not(.topbar-navmin-collapsed) .topbar-edge-arrow { transform: rotate(180deg); }
+.topbar-minimizable.topbar-navmin-collapsed .topbar-edge-arrow { transform: rotate(0deg); }
+
+.topbar-body { transition: opacity 0.25s ease; }
+.topbar-minimizable.topbar-navmin-collapsed .topbar-body {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Expanded height = normal topbar height + the 26px edge strip.
+   :not(.topbar-expanded) keeps this from fighting the existing
+   "More Projects" auto-height rule when both are open together. */
+.topbar.topbar-minimizable:not(.topbar-expanded) { height: 211px; }
+@media (max-width: 739px) {
+  .topbar.topbar-minimizable:not(.topbar-expanded) { height: 158px; }
+}
+
+.topbar.topbar-minimizable { transition: height 0.4s cubic-bezier(0.65,0,0.35,1); }
+
+/* Collapsed = just the edge strip, few pixels tall, always wins. */
+.topbar.topbar-minimizable.topbar-navmin-collapsed {
+  height: 26px !important;
+  overflow: hidden;
+}
+
+/* Used briefly on page-load / page-swap so the very first collapse
+   doesn't visibly animate open-then-shut. */
+.topbar.topbar-minimizable.navmin-instant,
+.topbar.topbar-minimizable.navmin-instant .topbar-body {
+  transition: none !important;
+}

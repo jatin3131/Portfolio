@@ -4,31 +4,42 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>AI Video Generation — Jatin Bhoir</title>
-<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/ai-video-generation.css" />
 </head>
 <body>
-  <div class="blob-wrap" aria-hidden="true">
-    <svg class="blob-svg" viewBox="0 0 520 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-   <linearGradient id="blobGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" stop-color="#B79CF7"/>
-    <stop offset="35%" stop-color="#C7AEF9"/>
-    <stop offset="70%" stop-color="#DAC6FC"/>
-    <stop offset="100%" stop-color="#EDE1FE"/>
-</linearGradient>
-      <filter id="blobBlur" x="-40%" y="-40%" width="180%" height="180%">
-  <feGaussianBlur stdDeviation="24" />
-</filter>
-      </defs>
-      <path class="blob-path" fill="url(#blobGrad)" filter="url(#blobBlur)"
-        d="M0,0
-           C 190,10 360,70 380,220
-           C 398,350 260,400 240,520
-           C 222,630 340,690 300,800
-           C 275,868 140,890 0,900
-           Z" />
-    </svg>
+
+  <style> html, body { background: #000 !important; } </style>
+
+  <!-- Ambient Reel Background — a vertical reel video pinned to the
+       right side of the screen, with a full-page colour wash that
+       tracks the video's dominant colours (see js/ambient-bg.js).
+       Add your real video below where marked; until then a placeholder
+       card is shown and the wash uses a static default gradient. -->
+  <div class="ambient-bg" aria-hidden="true">
+    <video id="ambientEchoVideo" class="ambient-echo-video" muted loop playsinline autoplay aria-hidden="true"></video>
   </div>
+
+  <div class="ambient-video-frame" id="ambientVideoFrame">
+    <video id="ambientVideo" class="ambient-video" muted loop playsinline autoplay crossorigin="anonymous">
+      <source src="https://res.cloudinary.com/gmxsu1pq/video/upload/v1788618604/1788618496303740_v3fpwt.mov">
+    </video>
+
+    <!-- 
+    10s: https://res.cloudinary.com/gmxsu1pq/video/upload/v1788555848/Dream_Screen_05Sep2026_02_10_39_zg85aj.mov
+    20s: https://res.cloudinary.com/gmxsu1pq/video/upload/v1788610691/5-Sep-2026-1-1788610591_7304921_shi8rc.mov 
+    https://res.cloudinary.com/gmxsu1pq/video/upload/v1788623236/1788623142583344_tnrnxz.mov-->
+
+
+    <!-- <div class="ambient-video-placeholder">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="3"/>
+        <path d="M10 9l5 3-5 3V9z" fill="currentColor" stroke="none"/>
+      </svg>
+      <span class="ambient-video-placeholder-title">Reel video placeholder</span>
+      <span class="ambient-video-placeholder-sub">Your vertical video will play here — the background wash will pick up its colours automatically once it's added.</span>
+    </div> -->
+  </div>
+
 <div class="topbar">
     <div class="header-actions">
       <button type="button" class="explore-btn edu-btn ripple-host">
@@ -62,7 +73,7 @@
 
      <nav class="pills-row" aria-label="Project categories">
   <span class="pills-heading">My Projects</span>
-  <a href="social-media.html" class="pill  ripple-host">Social Media</a>
+  <a href="social-media.html" class="pill  ripple-host">Social Media Projects</a>
   <a href="freelancing.html" class="pill  ripple-host">Freelancing</a>
   <a href="web-development.html" class="pill ripple-host">Web Development</a>
 
@@ -76,7 +87,7 @@
   <div class="pills-extra-row" id="morePillsRow">
     <a href="ai-video-generation.html" class="pill pill-active ripple-host">AI Video Generation</a>
     <!-- add future pills here, e.g. -->
-<a href="AIML.html" class="pill ripple-host">AIML</a>
+      <a href="AIML.html" class="pill ripple-host">AIML</a>
     <!-- <a href="new-category.html" class="pill ripple-host">New Category</a> -->
   </div>
 </nav>
@@ -127,7 +138,7 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
   </div>
 </div>
   <div id="page-content">
-  <div class="app-inner">
+  <div class="app-inner content-shell">
 
     <main class="main-area">
       <section class="category-page fade-slide-in">
@@ -154,77 +165,36 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
             <div class="video-play-overlay"><span class="video-play-circle">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </span></div>
-            <div class="video-caption">Clip 01 — Basic</div>
+            <div class="video-caption">Flipping Egg motion control </div>
           <button class="video-prompt-btn ripple-host" aria-label="View prompt" data-title="Clip 01 — Basic" data-prompt="A golden retriever attempts to steal a slice of pizza in slow motion, cinematic lighting, comedic timing, shallow depth of field, 24fps film look.">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/></svg>
           </button>
           </div>
-<!-- 
+
           <div class="video-card" data-category="basic">
-            <video muted loop playsinline preload="auto" src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4"></video>
+            <video muted loop playsinline preload="auto" src="https://res.cloudinary.com/gmxsu1pq/video/upload/v1788555848/Dream_Screen_05Sep2026_02_10_39_zg85aj.mov"></video>
             <div class="video-play-overlay"><span class="video-play-circle">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </span></div>
-            <div class="video-caption">Clip 02 — Basic</div>
-          <button class="video-prompt-btn ripple-host" aria-label="View prompt" data-title="Clip 02 — Basic" data-prompt="Office employees break into a synchronized dance the moment the boss leaves the room, handheld camera, warm sitcom lighting, quick cuts.">
+            <div class="video-caption">For Page Background</div>
+          <button class="video-prompt-btn ripple-host" aria-label="View prompt" data-title="Clip 01 — Basic" data-prompt="A golden retriever attempts to steal a slice of pizza in slow motion, cinematic lighting, comedic timing, shallow depth of field, 24fps film look.">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/></svg>
           </button>
           </div>
 
+         
+
+
           <div class="video-card" data-category="basic">
-            <video muted loop playsinline preload="auto" src="https://storage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4"></video>
+            <video muted loop playsinline preload="auto" src=" https://res.cloudinary.com/gmxsu1pq/video/upload/v1788771281/vidssave.com_naturephotography_lake_720P_qvdt7n.mp4"></video>
             <div class="video-play-overlay"><span class="video-play-circle">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </span></div>
-            <div class="video-caption">Clip 03 — Basic</div>
-          <button class="video-prompt-btn ripple-host" aria-label="View prompt" data-title="Clip 03 — Basic" data-prompt="A raccoon rides a tiny skateboard through a suburban driveway at sunset, slow-motion, playful orchestral score, shallow depth of field.">
+            <div class="video-caption">Lake View</div>
+          <button class="video-prompt-btn ripple-host" aria-label="View prompt" data-title="Clip 01 — Basic" data-prompt="A golden retriever attempts to steal a slice of pizza in slow motion, cinematic lighting, comedic timing, shallow depth of field, 24fps film look.">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/></svg>
           </button>
           </div>
-
-          <div class="video-card" data-category="basic">
-            <video muted loop playsinline preload="auto" src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"></video>
-            <div class="video-play-overlay"><span class="video-play-circle">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            </span></div>
-            <div class="video-caption">Clip 04 — Basic</div>
-          <button class="video-prompt-btn ripple-host" aria-label="View prompt" data-title="Clip 04 — Basic" data-prompt="A toddler outsmarts a childproof cabinet lock while the family cat watches unimpressed, natural lighting, documentary handheld style.">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/></svg>
-          </button>
-          </div>
-
-          <div class="video-card" data-category="basic">
-            <video muted loop playsinline preload="auto" src="https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"></video>
-            <div class="video-play-overlay"><span class="video-play-circle">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            </span></div>
-            <div class="video-caption">Clip 05 — Basic</div>
-          <button class="video-prompt-btn ripple-host" aria-label="View prompt" data-title="Clip 05 — Basic" data-prompt="Drone shot gliding low over a misty pine forest at dawn, volumetric light rays, gentle camera drift, muted green and gold palette.">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/></svg>
-          </button>
-          </div>
-
-          <div class="video-card" data-category="basic">
-            <video muted loop playsinline preload="auto" src="https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4"></video>
-            <div class="video-play-overlay"><span class="video-play-circle">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            </span></div>
-            <div class="video-caption">Clip 06 — Basic</div>
-          <button class="video-prompt-btn ripple-host" aria-label="View prompt" data-title="Clip 06 — Basic" data-prompt="Time-lapse of a desert bloom after rare rainfall, wildflowers opening in fast-forward, warm dusty tones, macro-to-wide transition.">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/></svg>
-          </button>
-          </div>
-
-          <div class="video-card" data-category="basic">
-            <video muted loop playsinline preload="auto" src="https://storage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4"></video>
-            <div class="video-play-overlay"><span class="video-play-circle">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            </span></div>
-            <div class="video-caption">Clip 07 — Basic</div>
-          <button class="video-prompt-btn ripple-host" aria-label="View prompt" data-title="Clip 07 — Basic" data-prompt="A humpback whale breaches beside a small research boat under an overcast sky, wide lens, slow motion, cool blue-grey color grade.">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/></svg>
-          </button>
-          </div> -->
 
 
 
@@ -245,7 +215,7 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
       <svg class="cb-play" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       <svg class="cb-pause" width="26" height="26" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
     </button>
-    <div class="video-caption">For "swarna bharat tv"</div>
+    <div class="video-caption">Universe That We Create</div>
     <button class="video-prompt-btn ripple-host" aria-label="View prompt" data-title="Clip 10 — Cinematic" data-prompt="A chase sequence through a crumbling ancient temple, dust and falling debris, dramatic side-lighting, fast intercut close-ups, orchestral swell.">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/></svg>
     </button>
@@ -294,12 +264,6 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.8 2.8M14.9 14.9l2.8 2.8M6.3 17.7l2.8-2.8M14.9 9.1l2.8-2.8"/></svg>
     </button>
   </div>
-
-
-
-
-
-      
 
         </div>
       </section>
@@ -363,12 +327,6 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
 <p>Using a combination of AI-assisted image generation and digital illustration techniques, I created a painterly portrait of a fictional blonde German woman wearing the Radhaube. Throughout the project, I collaborated closely with the client, incorporating feedback through multiple design iterations to ensure the final artwork reflected both the restaurant's cultural heritage and its brand identity.</p>
 </p>
           <div class="exp-image"><img src="https://res.cloudinary.com/gmxsu1pq/image/upload/v1785770521/IMG_7110_ihd1qm.jpg" alt="Loom &amp; Co." loading="lazy" /></div>
-          <!-- <style>
-            .exp-image img {
-              align-items: center;
-              background-color: #00bfff;
-              
-            }</style> -->
         </div>
 
        </div>
@@ -378,7 +336,6 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
   </div>
 
   <!-- Education modal -->
- <!-- Education modal -->
 <div class="detail-overlay" id="education-modal">
   <div class="detail-panel exp-panel">
     <button class="detail-close" aria-label="Close">✕</button>
@@ -396,8 +353,7 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
         knowledge into real-world solutions.
       </p>
 
-      <!-- MCA -->
-       <div class="clr">
+      <div class="clr">
         <style>
           .clr {
             content: "";
@@ -428,7 +384,6 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
         </h3>
 
         <p class="exp-desc" style="
-          /* font-size:1rem; */
           line-height:1.8;
           color:#000000;">
           Built advanced knowledge in data science, machine learning, database
@@ -438,17 +393,8 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
           development skills through coursework and internships.
         </p>
 
-        <!--
-        <div class="exp-image">
-          <img src="https://picsum.photos/seed/edu-university/900/560"
-               alt="University"
-               loading="lazy">
-        </div>
-        -->
-
       </div>
 
-      <!-- BSc -->
       <div class="exp-entry">
 
         <h2 class="exp-heading" style="
@@ -470,7 +416,6 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
         </h3>
 
         <p class="exp-desc" style="
-          /* font-size:1rem; */
           line-height:1.8;
           color:#000000;">
           Developed a strong foundation in programming, data structures,
@@ -481,25 +426,12 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
           applications.
         </p>
 
-        <!--
-        <div class="exp-image">
-          <img src="https://picsum.photos/seed/edu-institute/900/560"
-               alt="College"
-               loading="lazy">
-        </div>
-        -->
-
       </div>
       </div>
 
     </div>
   </div>
 </div>
-
-  <!-- Work Experience modal -->
-  
-
-  <!-- Certifications modal -->
 
  <style>
   .detail-overlay{
@@ -579,7 +511,6 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
     flex-direction:column;
   }
 
-  /* side-by-side again: text left, image right, image column wider now */
   .cert-entry{
     display:grid;
     grid-template-columns:1fr 320px;
@@ -614,7 +545,6 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
     line-height:1.3;
   }
 
-  /* bumped up: issuer name is now a real, readable line */
   .cert-by{
     font-family:'Inter', sans-serif;
     font-size:16px;
@@ -639,7 +569,6 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
     margin:0;
   }
 
-  /* bigger image, side column */
   .cert-image{
     width:100%;
     height:220px;
@@ -677,7 +606,6 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
   }
   .cert-image:hover img{ transform:scale(1.04); }
 
-  /* ---------- Lightbox ---------- */
   .cert-lightbox{
     position:fixed;
     inset:0;
@@ -790,7 +718,7 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
             </div>
             <div class="cert-image"><img src="https://res.cloudinary.com/gmxsu1pq/image/upload/v1785085410/IMG_6997_h6gik9.jpg" alt="Brand Identity and Visual Systems certificate" loading="lazy" /></div>
           </div>
-          
+
           <div class="cert-entry">
             <div class="cert-text">
               <h3 class="cert-heading">MODERN SECURITIES & CHALLENGES</h3>
@@ -851,8 +779,6 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
   })();
 </script>
 
-
-
   <!-- About Me modal -->
   <div class="detail-overlay" id="about-modal">
     <div class="detail-panel about-panel">
@@ -868,7 +794,6 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
 <p>Artificial Intelligence plays an important role in my workflow. I use AI to enhance creativity, improve productivity, and solve problems more efficiently while ensuring every project reflects my own skills and decisions.</p>
 
 <p>Everything featured in this portfolio has been designed and developed by me from scratch, showcasing my passion for learning, innovation, and creating meaningful digital experiences.</p>
-<!-- <p class="detail-desc">Sample text: outside of client work, I spend time experimenting with AI tooling, motion, and generative video — some of which shows up in the "AI Video Generation" section above.</p> -->
           <ul class="about-skills">
             <li>UI / UX Design</li>
             <li>Frontend Development</li>
@@ -885,5 +810,7 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
   </div>
   </div>
   <script src="js/main.js"></script>
+  <script src="js/ambient-bg.js"></script>
+  <script src="js/topbar-minimize.js"></script>
 </body>
 </html>

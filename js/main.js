@@ -419,7 +419,10 @@ function initVideoTabs() {
     cards.forEach((c) => {
       c.style.display = c.dataset.category === filter ? "" : "none";
     });
-    if (grid) grid.classList.toggle("grid-cinematic", filter === "cinematic");
+    if (grid) {
+      grid.classList.toggle("grid-cinematic", filter === "cinematic");
+      grid.classList.toggle("grid-basic", filter === "basic");
+    }
   }
 
   tabs.forEach((t) =>
@@ -442,8 +445,13 @@ function initVideoHoverPlay() {
     video.muted = false;
     video.defaultMuted = false;
     video.playsInline = true;
+    // Basic ("simple") clips always play at half volume, never full.
+    video.volume = 0.4;
 
     const tryPlay = () => {
+      // Guard against anything (browser, another script) resetting volume
+      // back to full before playback starts.
+      video.volume = 0.4;
       const p = video.play();
       if (p && typeof p.catch === "function") {
         p.catch(() => {
@@ -453,6 +461,12 @@ function initVideoHoverPlay() {
         });
       }
     };
+
+    // Keep it pinned at 40% even if the muted-fallback path above (or
+    // anything else) changes it after playback starts.
+    video.addEventListener("volumechange", () => {
+      if (!video.muted && video.volume !== 0.4) video.volume = 0.4;
+    });
 
     card.addEventListener("mouseenter", tryPlay);
     card.addEventListener("mouseleave", () => {
@@ -913,6 +927,99 @@ function pjaxSyncMorePillsRow() {
   requestAnimationFrame(() => extraRow.classList.remove("no-anim"));
 }
 
+// PJAX only ever swaps #page-content — it never touches <head> — so a
+// page's own <link rel="stylesheet"> (e.g. css/ai-video-generation.css,
+// which is NOT the same file as the shared css/style.css other pages
+// use) needs to be loaded on navigation, and the previous page's own
+// stylesheet needs to come back OFF once it's no longer needed —
+// otherwise its rules (and any page-owned chrome CSS in it, like the
+// ambient background) keep applying to pages that never asked for them.
+//
+// This is safe to do as a full add+remove sync (rather than additive-
+// only) because each page's stylesheet is fully self-contained: things
+// like .topbar and the contact widget are duplicated in full in every
+// page's own CSS file, not split into a "shared" file the persistent
+// chrome elements depend on. So once the destination's stylesheet has
+// loaded, dropping the old one never leaves .topbar etc. unstyled.
+//
+// Order matters: we ADD the new stylesheet(s) and wait for them to
+// load FIRST, then REMOVE whatever's stale — so there's never a gap
+// where neither stylesheet is active (no flash of unstyled content).
+function pjaxSyncStylesheets(newDoc, baseUrl) {
+  const newLinks = Array.from(newDoc.querySelectorAll('link[rel="stylesheet"][href]'));
+  const wantedHrefs = newLinks.map((l) => new URL(l.getAttribute("href"), baseUrl).href);
+
+  const currentLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"][href]'));
+  const currentHrefs = currentLinks.map((l) => new URL(l.getAttribute("href"), window.location.href).href);
+
+  const toAdd = wantedHrefs.filter((href) => !currentHrefs.includes(href));
+
+  const addDone = toAdd.length
+    ? Promise.all(
+        toAdd.map(
+          (href) =>
+            new Promise((resolve) => {
+              const link = document.createElement("link");
+              link.rel = "stylesheet";
+              link.href = href;
+              link.addEventListener("load", resolve);
+              link.addEventListener("error", resolve); // don't hang navigation on a bad stylesheet
+              document.head.appendChild(link);
+            })
+        )
+      )
+    : Promise.resolve();
+
+  return addDone.then(() => {
+    currentLinks.forEach((link) => {
+      const href = new URL(link.getAttribute("href"), window.location.href).href;
+      if (!wantedHrefs.includes(href)) link.remove();
+    });
+  });
+}
+
+// The ambient reel background (.ambient-bg + #ambientVideoFrame) is
+// page-specific chrome that — like .topbar — lives OUTSIDE #page-content,
+// so PJAX never rebuilds it automatically. Unlike .topbar, it must NOT
+// persist onto pages that don't want it, and it MUST appear when you
+// navigate straight into the AI Video page from somewhere else. This
+// adds or removes it to match whatever the destination page actually has,
+// on every navigation.
+function pjaxLoadScriptOnce(src) {
+  return new Promise((resolve) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const script = document.createElement("script");
+    script.src = src;
+    script.addEventListener("load", resolve);
+    script.addEventListener("error", resolve);
+    document.body.appendChild(script);
+  });
+}
+
+async function pjaxSyncAmbientChrome(newDoc, baseUrl) {
+  const wantsAmbient = !!newDoc.getElementById("ambientVideoFrame");
+  const hasAmbient = !!document.getElementById("ambientVideoFrame");
+
+  if (!wantsAmbient && hasAmbient) {
+    if (window.teardownAmbientBg) window.teardownAmbientBg();
+    document.querySelectorAll(".ambient-bg, #ambientVideoFrame").forEach((el) => el.remove());
+    return;
+  }
+
+  if (wantsAmbient && !hasAmbient) {
+    const ambientBg = newDoc.querySelector(".ambient-bg");
+    const ambientFrame = newDoc.getElementById("ambientVideoFrame");
+    const topbar = document.querySelector(".topbar");
+    if (ambientBg) document.body.insertBefore(document.importNode(ambientBg, true), topbar);
+    if (ambientFrame) document.body.insertBefore(document.importNode(ambientFrame, true), topbar);
+
+    if (!window.initAmbientBg) {
+      await pjaxLoadScriptOnce(new URL("js/ambient-bg.js", baseUrl).href);
+    }
+    if (window.initAmbientBg) window.initAmbientBg();
+  }
+}
+
 function pjaxIsEligible(link) {
   const href = link.getAttribute("href");
   if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
@@ -970,6 +1077,16 @@ async function pjaxNavigate(url, addToHistory) {
       window.location.href = url;
       return;
     }
+
+    // Make sure the destination page's own CSS is loaded (and any
+    // stylesheet that's now stale is dropped) before its markup goes
+    // in, so it never renders using the wrong page's styles.
+    await pjaxSyncStylesheets(newDoc, res.url);
+
+    // Add/remove the ambient reel background to match the destination —
+    // this lives outside #page-content so the container swap below
+    // never touches it on its own.
+    await pjaxSyncAmbientChrome(newDoc, res.url);
 
     container.replaceWith(newContainer);
 
