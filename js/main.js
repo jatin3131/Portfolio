@@ -462,10 +462,10 @@ function initVideoHoverPlay() {
       }
     };
 
-    // Keep it pinned at 40% even if the muted-fallback path above (or
+    // Keep it pinned at 50% even if the muted-fallback path above (or
     // anything else) changes it after playback starts.
     video.addEventListener("volumechange", () => {
-      if (!video.muted && video.volume !== 0.4) video.volume = 0.4;
+      if (!video.muted && video.volume !== 0.5) video.volume = 0.5;
     });
 
     card.addEventListener("mouseenter", tryPlay);
@@ -563,6 +563,47 @@ function initCinematicVideos() {
     });
   });
 }
+/* ============================================================
+   VIDEO BUFFERING SPINNER — applies to every .video-card (basic
+   and cinematic alike). Adds .video-loading the moment a card's
+   <video> is fetching data with not enough buffered to play yet,
+   and removes it once playback can actually start smoothly. Also
+   re-shows the spinner if playback stalls mid-way (real network
+   buffering), not just on first load.
+   ============================================================ */
+function initVideoLoadingState() {
+  document.querySelectorAll(".video-card").forEach((card) => {
+    const video = card.querySelector("video");
+    if (!video || video.dataset.bufferBound) return;
+    video.dataset.bufferBound = "true";
+
+    const showLoading = () => card.classList.add("video-loading");
+    const hideLoading = () => card.classList.remove("video-loading");
+
+    // readyState >= 3 (HAVE_FUTURE_DATA) means it can play through the
+    // current frame without immediately stalling — good enough to call
+    // "loaded" for a hover-preview clip.
+    if (video.readyState < 3) showLoading();
+
+    video.addEventListener("loadstart", showLoading);
+    video.addEventListener("waiting", showLoading); // stalled mid-playback
+    video.addEventListener("stalled", showLoading); // network gave up momentarily
+    video.addEventListener("canplay", hideLoading);
+    video.addEventListener("canplaythrough", hideLoading);
+    video.addEventListener("playing", hideLoading);
+
+    // preload="auto" on every clip means loading typically starts on
+    // its own, but explicitly nudge it in case the browser deferred it.
+    if (video.readyState === 0) {
+      try {
+        video.load();
+      } catch (err) {
+        /* no-op */
+      }
+    }
+  });
+}
+
 /* ============================================================
    SHARED PROMPT MODAL — used by both the video-prompt button and
    the AI Illustrations grid. Optionally shows an image up top.
@@ -1020,6 +1061,23 @@ async function pjaxSyncAmbientChrome(newDoc, baseUrl) {
   }
 }
 
+// topbar-minimize.js (the auto-collapsing navbar on the AI Video page) is
+// loaded via a <script src> tag that lives OUTSIDE #page-content, so — just
+// like ambient-bg.js above — PJAX swapping #page-content never triggers it
+// on its own. Without this, landing on the AI Video page via an in-site
+// link (rather than a hard refresh/direct URL) never loads the script at
+// all, so the navbar never auto-minimizes. This loads it once, the first
+// time we PJAX into any page that references it; the script's own
+// MutationObserver (already inside topbar-minimize.js) then keeps handling
+// every subsequent navigation on its own — it just needed to exist once.
+async function pjaxSyncTopbarMinimizeScript(newDoc, baseUrl) {
+  const wantsScript = !!newDoc.querySelector('script[src*="topbar-minimize.js"]');
+  if (wantsScript && !window.__topbarMinimizeLoaded) {
+    await pjaxLoadScriptOnce(new URL("js/topbar-minimize.js", baseUrl).href);
+    window.__topbarMinimizeLoaded = true;
+  }
+}
+
 function pjaxIsEligible(link) {
   const href = link.getAttribute("href");
   if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
@@ -1048,6 +1106,7 @@ function initPageContent(root) {
   initVideoTabs();
   initVideoHoverPlay();
   initCinematicVideos();
+  initVideoLoadingState();
   const promptModal = initPromptModal();
   initVideoPromptButtons(promptModal);
   initIllustrationGrid(promptModal);
@@ -1087,6 +1146,12 @@ async function pjaxNavigate(url, addToHistory) {
     // this lives outside #page-content so the container swap below
     // never touches it on its own.
     await pjaxSyncAmbientChrome(newDoc, res.url);
+
+    // Same reasoning as pjaxSyncAmbientChrome above, but for the topbar
+    // auto-minimize script — must run (and be awaited) BEFORE the
+    // container swap below, so its MutationObserver is already watching
+    // <body> in time to catch this exact navigation's DOM mutation.
+    await pjaxSyncTopbarMinimizeScript(newDoc, res.url);
 
     container.replaceWith(newContainer);
 
