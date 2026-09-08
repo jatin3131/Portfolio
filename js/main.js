@@ -592,16 +592,64 @@ function initVideoLoadingState() {
     video.addEventListener("canplaythrough", hideLoading);
     video.addEventListener("playing", hideLoading);
 
-    // preload="auto" on every clip means loading typically starts on
-    // its own, but explicitly nudge it in case the browser deferred it.
-    if (video.readyState === 0) {
-      try {
-        video.load();
-      } catch (err) {
-        /* no-op */
-      }
-    }
+    // NOTE: grid clips now use preload="none" on purpose — see
+    // initGridVideoDeferredLoad() below, which is what actually kicks
+    // off their buffering once the hero video is ready. Don't force
+    // .load() here or every clip fetches at once again, defeating that.
   });
+}
+
+/* ============================================================
+   DEFERRED GRID VIDEO BUFFERING
+   Grid clips (.video-card video) ship with preload="none" so they
+   don't compete for bandwidth with the hero/ambient video on first
+   paint. Once the hero video reports it can actually play (or after
+   a short safety timeout if it stalls), this quietly calls .load()
+   on each grid clip, staggered a bit so they don't all slam the
+   network at the same instant. This only buffers — it never calls
+   .play() — so the page stays fully interactive throughout, and
+   clips are simply ready sooner once the user hovers/clicks/scrolls
+   to them.
+   ============================================================ */
+function initGridVideoDeferredLoad() {
+  const gridVideos = Array.from(document.querySelectorAll(".video-card video"));
+  if (!gridVideos.length) return;
+
+  let started = false;
+  const startBuffering = () => {
+    if (started) return;
+    started = true;
+    gridVideos.forEach((video, i) => {
+      setTimeout(() => {
+        if (video.readyState === 0) {
+          try {
+            video.load();
+          } catch (err) {
+            /* no-op */
+          }
+        }
+      }, i * 300); // stagger so clips don't all fight for bandwidth at once
+    });
+  };
+
+  const hero = document.getElementById("ambientVideo");
+  if (!hero) {
+    // No hero video on this page — nothing to wait on, buffer now.
+    startBuffering();
+    return;
+  }
+
+  // readyState >= 3 (HAVE_FUTURE_DATA) means the hero can already play
+  // smoothly — e.g. after a pjax navigation where it was already
+  // buffered. In that case there's nothing to wait for.
+  if (hero.readyState >= 3) {
+    startBuffering();
+  } else {
+    hero.addEventListener("canplay", startBuffering, { once: true });
+    // Safety net: don't leave grid clips unbuffered forever if the
+    // hero video stalls, errors out, or is slow on a bad connection.
+    setTimeout(startBuffering, 2500);
+  }
 }
 
 /* ============================================================
@@ -1107,6 +1155,7 @@ function initPageContent(root) {
   initVideoHoverPlay();
   initCinematicVideos();
   initVideoLoadingState();
+  initGridVideoDeferredLoad();
   const promptModal = initPromptModal();
   initVideoPromptButtons(promptModal);
   initIllustrationGrid(promptModal);

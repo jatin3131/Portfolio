@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>AI Video Generation — Jatin Bhoir</title>
 <link rel="stylesheet" href="css/ai-video-generation.css" />
+<!-- Warm up the connection to Cloudinary as early as possible so the
+     hero video's first byte arrives sooner — this alone can shave a
+     noticeable chunk off its start time on slower connections. -->
+<link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+<link rel="dns-prefetch" href="https://res.cloudinary.com" />
 <style>
   /* --- Video card buffering spinner ---------------------------------
      A card carries .video-loading from the moment its <video> starts
@@ -61,8 +66,8 @@
   </div>
 
   <div class="ambient-video-frame" id="ambientVideoFrame">
-    <video id="ambientVideo" class="ambient-video" muted loop playsinline autoplay crossorigin="anonymous">
-      <source src="https://res.cloudinary.com/gmxsu1pq/video/upload/v1788618604/1788618496303740_v3fpwt.mov">
+    <video id="ambientVideo" class="ambient-video" muted loop playsinline autoplay preload="auto" fetchpriority="high" crossorigin="anonymous">
+      <source src="https://res.cloudinary.com/gmxsu1pq/video/upload/f_auto,q_auto/v1788618604/1788618496303740_v3fpwt.mov">
     </video>
 
     <!-- 
@@ -202,7 +207,7 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
         <div class="video-grid">
 
           <div class="video-card" data-category="basic">
-            <video muted loop playsinline preload="auto" src="https://res.cloudinary.com/gmxsu1pq/video/upload/v1784028362/vidssave.com_Gravity_didn_t_work_aicat_catai_pets_catfunny_720P_gjdvmz.mp4"></video>
+            <video muted loop playsinline preload="none" fetchpriority="low" src="https://res.cloudinary.com/gmxsu1pq/video/upload/f_auto,q_auto/v1784028362/vidssave.com_Gravity_didn_t_work_aicat_catai_pets_catfunny_720P_gjdvmz.mp4"></video>
             <div class="video-buffer-spinner" aria-hidden="true"></div>
             <div class="video-play-overlay"><span class="video-play-circle">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -214,7 +219,7 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
           </div>
 
           <div class="video-card" data-category="basic">
-            <video muted loop playsinline preload="auto" src="https://res.cloudinary.com/gmxsu1pq/video/upload/v1788555848/Dream_Screen_05Sep2026_02_10_39_zg85aj.mov"></video>
+            <video muted loop playsinline preload="none" fetchpriority="low" src="https://res.cloudinary.com/gmxsu1pq/video/upload/f_auto,q_auto/v1788555848/Dream_Screen_05Sep2026_02_10_39_zg85aj.mov"></video>
             <div class="video-buffer-spinner" aria-hidden="true"></div>
             <div class="video-play-overlay"><span class="video-play-circle">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -229,7 +234,7 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
 
 
           <div class="video-card" data-category="basic">
-            <video muted loop playsinline preload="auto" src="https://res.cloudinary.com/gmxsu1pq/video/upload/v1788771281/vidssave.com_naturephotography_lake_720P_qvdt7n.mp4"></video>
+            <video muted loop playsinline preload="none" fetchpriority="low" src="https://res.cloudinary.com/gmxsu1pq/video/upload/f_auto,q_auto/v1788771281/vidssave.com_naturephotography_lake_720P_qvdt7n.mp4"></video>
             <div class="video-buffer-spinner" aria-hidden="true"></div>
             <div class="video-play-overlay"><span class="video-play-circle">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -244,9 +249,9 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
 
 
             <div class="video-card video-cinematic" data-category="cinematic" style="display:none">
-    <video loop playsinline preload="auto"
+    <video loop playsinline preload="none" fetchpriority="low"
            poster="https://res.cloudinary.com/gmxsu1pq/image/upload/v1787272457/Screenshot_2026-08-21_052745_k4cdym.png"
-           src="https://res.cloudinary.com/gmxsu1pq/video/upload/v1787272206/20-Aug-2026-1787268892_6119909_lgvyja.mov"></video>
+           src="https://res.cloudinary.com/gmxsu1pq/video/upload/f_auto,q_auto/v1787272206/20-Aug-2026-1787268892_6119909_lgvyja.mov"></video>
     <div class="video-buffer-spinner" aria-hidden="true"></div>
     <button class="video-fullscreen-btn ripple-host" aria-label="Toggle fullscreen">
       <svg class="fs-expand" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -267,9 +272,9 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
   </div>
 
   <div class="video-card video-cinematic" data-category="cinematic" style="display:none">
-    <video loop playsinline preload="auto"
+    <video loop playsinline preload="none" fetchpriority="low"
            poster="https://res.cloudinary.com/gmxsu1pq/image/upload/v1787272578/Screenshot_2026-08-16_153605_kmesb8.png"
-           src="https://res.cloudinary.com/gmxsu1pq/video/upload/v1786715453/10-Aug-2026-1786708012_6087561_kpbnfq.mov"></video>
+           src="https://res.cloudinary.com/gmxsu1pq/video/upload/f_auto,q_auto/v1786715453/10-Aug-2026-1786708012_6087561_kpbnfq.mov"></video>
     <div class="video-buffer-spinner" aria-hidden="true"></div>
     <button class="video-fullscreen-btn ripple-host" aria-label="Toggle fullscreen">
       <svg class="fs-expand" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -290,9 +295,9 @@ href="https://mail.google.com/mail/?view=cm&to=jatinbhoir5253@gmail.com&su=Oppor
   </div>
 
   <div class="video-card video-cinematic" data-category="cinematic" style="display:none">
-    <video loop playsinline preload="auto"
+    <video loop playsinline preload="none" fetchpriority="low"
            poster="https://res.cloudinary.com/gmxsu1pq/image/upload/v1786868975/Gemini_Generated_Image_pifu73pifu73pifu_pjdrex.png"
-           src="https://res.cloudinary.com/gmxsu1pq/video/upload/v1786714491/12-Aug-2026-1786713133_3424380_ds9ii9.mov"></video>
+           src="https://res.cloudinary.com/gmxsu1pq/video/upload/f_auto,q_auto/v1786714491/12-Aug-2026-1786713133_3424380_ds9ii9.mov"></video>
     <div class="video-buffer-spinner" aria-hidden="true"></div>
     <button class="video-fullscreen-btn ripple-host" aria-label="Toggle fullscreen">
       <svg class="fs-expand" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
